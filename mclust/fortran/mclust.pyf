@@ -1,0 +1,1216 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module mclust ! in 
+    interface  ! in :mclust
+        function dgamma(x) ! in :mclust:mclust.f
+            double precision :: x
+            double precision :: dgamma
+        end function dgamma
+        subroutine d9gaml(xmin,xmax) ! in :mclust:mclust.f
+            double precision :: xmin
+            double precision :: xmax
+        end subroutine d9gaml
+        function dcsevl(x,a,n) ! in :mclust:mclust.f
+            double precision :: x
+            double precision dimension(n) :: a
+            integer, optional,check(len(a)>=n),depend(a) :: n=len(a)
+            double precision :: dcsevl
+        end function dcsevl
+        function d9lgmc(x) ! in :mclust:mclust.f
+            double precision :: x
+            double precision :: d9lgmc
+        end function d9lgmc
+        function dlngam(x) ! in :mclust:mclust.f
+            double precision :: x
+            double precision :: dlngam
+        end function dlngam
+        function initds(dos,nos,eta) ! in :mclust:mclust.f
+            double precision dimension(nos) :: dos
+            integer, optional,check(len(dos)>=nos),depend(dos) :: nos=len(dos)
+            real :: eta
+            integer :: initds
+        end function initds
+        subroutine absrng(l,v,i,vmin,vmax) ! in :mclust:mclust.f
+            integer :: l
+            double precision dimension(*) :: v
+            integer :: i
+            double precision :: vmin
+            double precision :: vmax
+        end subroutine absrng
+        subroutine d2norm(n,x,incx,value) ! in :mclust:mclust.f
+            integer :: n
+            double precision dimension(*) :: x
+            integer :: incx
+            double precision :: value
+        end subroutine d2norm
+        subroutine mclrup(l,n,v,r,lr) ! in :mclust:mclust.f
+            integer :: l
+            integer :: n
+            double precision dimension(*) :: v
+            double precision dimension(lr,*) :: r
+            integer, optional,check(shape(r,0)==lr),depend(r) :: lr=shape(r,0)
+        end subroutine mclrup
+        subroutine mcltrw(x,n,p,u,ss) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            double precision dimension(*) :: u
+            double precision :: ss
+        end subroutine mcltrw
+        subroutine mclvol(x,n,p,u,v,w,work,lwork,iwork,liwork,info) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(v,0)==p),depend(v) :: p=shape(v,0)
+            double precision dimension(*) :: u
+            double precision dimension(p,*) :: v
+            double precision dimension(p,p),depend(p,p) :: w
+            double precision dimension(*) :: work
+            integer :: lwork
+            integer dimension(*) :: iwork
+            integer :: liwork
+            integer :: info
+        end subroutine mclvol
+        subroutine sgnrng(l,v,i,vmin,vmax) ! in :mclust:mclust.f
+            integer :: l
+            double precision dimension(*) :: v
+            integer :: i
+            double precision :: vmin
+            double precision :: vmax
+        end subroutine sgnrng
+        subroutine shapeo(transp,s,o,l,m,w,info) ! in :mclust:mclust.f
+            logical :: transp
+            double precision dimension(*) :: s
+            double precision dimension(l,l,*) :: o
+            integer, optional,check(shape(o,0)==l),depend(o) :: l=shape(o,0)
+            integer :: m
+            double precision dimension(l,*),depend(l) :: w
+            integer :: info
+        end subroutine shapeo
+        subroutine uncholf(upper,t,l,n,info) ! in :mclust:mclust.f
+            logical :: upper
+            double precision dimension(l,*) :: t
+            integer, optional,check(shape(t,0)==l),depend(t) :: l=shape(t,0)
+            integer :: n
+            integer :: info
+        end subroutine uncholf
+        subroutine wardsw(i,n,d) ! in :mclust:mclust.f
+            integer :: i
+            integer :: n
+            double precision dimension(*) :: d
+        end subroutine wardsw
+        subroutine es1e(x,mu,sigsq,pro,n,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*) :: z
+        end subroutine es1e
+        subroutine hc1e(x,n,ic,ng,ns,nd,d) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            integer, optional,check(len(ic)>=n),depend(ic) :: n=len(ic)
+            integer dimension(n) :: ic
+            integer :: ng
+            integer :: ns
+            integer :: nd
+            double precision dimension(*) :: d
+        end subroutine hc1e
+        subroutine me1e(eqpro,x,n,g,vinv,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(*) :: x
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine me1e
+        subroutine me1ep(eqpro,x,n,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(*) :: x
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine me1ep
+        subroutine ms1e(x,z,n,g,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            double precision dimension(n,*) :: z
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine ms1e
+        subroutine ms1ep(x,z,n,g,pshrnk,pmu,pscale,pdof,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            double precision dimension(n,*) :: z
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine ms1ep
+        subroutine eseee(chol,x,mu,sigma,pro,n,p,g,vinv,w,hood,z) ! in :mclust:mclust.f
+            logical :: chol
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision dimension(p,*),depend(p) :: sigma
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(*) :: w
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine eseee
+        function detmc2(n,u) ! in :mclust:mclust.f
+            integer, optional,check(shape(u,0)==n),depend(u) :: n=shape(u,0)
+            double precision dimension(n,*) :: u
+            double precision :: detmc2
+        end function detmc2
+        subroutine meeee(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,u,pro,w) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(p,*),depend(p) :: u
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+        end subroutine meeee
+        subroutine meeeep(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,u,pro,w) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*),depend(p) :: mu
+            double precision dimension(p,*),depend(p) :: u
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+        end subroutine meeeep
+        subroutine mseee(x,z,n,p,g,w,mu,u,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(*) :: w
+            double precision dimension(p,*) :: mu
+            double precision dimension(p,*),depend(p) :: u
+            double precision dimension(*) :: pro
+        end subroutine mseee
+        subroutine mseeep(x,z,n,p,g,pshrnk,pmu,pscale,pdof,w,mu,u,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: w
+            double precision dimension(p,*),depend(p) :: mu
+            double precision dimension(p,*),depend(p) :: u
+            double precision dimension(*) :: pro
+        end subroutine mseeep
+        subroutine eseei(x,mu,scale,shape_bn,pro,n,p,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine eseei
+        subroutine meeei(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine meeei
+        subroutine meeeip(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine meeeip
+        subroutine mseei(x,z,n,p,g,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine mseei
+        subroutine mseeip(x,z,n,p,g,pshrnk,pmu,pscale,pdof,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine mseeip
+        subroutine eseev(x,mu,scale,shape_bn,o,pro,n,p,g,vinv,v,w,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(*) :: v
+            double precision dimension(*) :: w
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine eseev
+        subroutine meeev(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,lwork,mu,scale,shape_bn,o,pro,w,s) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            integer :: lwork
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+            double precision dimension(*) :: s
+        end subroutine meeev
+        subroutine meeevp(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,lwork,mu,scale,shape_bn,o,pro,w,s) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            integer :: lwork
+            double precision dimension(p,*),depend(p) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+            double precision dimension(*) :: s
+        end subroutine meeevp
+        subroutine mseev(x,z,n,p,g,w,lwork,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(*) :: w
+            integer :: lwork
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+        end subroutine mseev
+        subroutine mseevp(x,z,n,p,g,pshrnk,pmu,pscale,pdof,w,lwork,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: w
+            integer :: lwork
+            double precision dimension(p,*),depend(p) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+        end subroutine mseevp
+        subroutine eseii(x,mu,sigsq,pro,n,p,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine eseii
+        subroutine hceii(x,n,p,ic,ng,ns,v,nd,d) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            integer dimension(n),depend(n) :: ic
+            integer :: ng
+            integer :: ns
+            double precision dimension(*) :: v
+            integer :: nd
+            double precision dimension(*) :: d
+        end subroutine hceii
+        subroutine meeii(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine meeii
+        subroutine meeiip(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine meeiip
+        subroutine mseii(x,z,n,p,g,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(p,*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine mseii
+        subroutine mseiip(x,z,n,p,g,pshrnk,pmu,pscale,pdof,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(p,*) :: mu
+            double precision :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine mseiip
+        subroutine esevi(x,mu,scale,shape_bn,pro,n,p,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine esevi
+        subroutine meevi(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine meevi
+        subroutine meevip(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine meevip
+        subroutine msevi(x,z,n,p,g,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine msevi
+        subroutine msevip(x,z,n,p,g,pshrnk,pmu,pscale,pdof,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(p,*) :: mu
+            double precision :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine msevip
+        subroutine es1v(x,mu,sigsq,pro,n,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            double precision dimension(*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*) :: z
+        end subroutine es1v
+        subroutine hc1v(x,n,ic,ng,ns,alpha,nd,d) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            integer :: n
+            integer dimension(*) :: ic
+            integer :: ng
+            integer :: ns
+            double precision :: alpha
+            integer :: nd
+            double precision dimension(*) :: d
+        end subroutine hc1v
+        subroutine me1v(eqpro,x,n,g,vinv,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(*) :: x
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine me1v
+        subroutine me1vp(eqpro,x,n,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(*) :: x
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine me1vp
+        subroutine ms1v(x,z,n,g,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            double precision dimension(n,*) :: z
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision dimension(*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine ms1v
+        subroutine ms1vp(x,z,n,g,pshrnk,pmu,pscale,pdof,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            double precision dimension(n,*) :: z
+            integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine ms1vp
+        subroutine esvei(x,mu,scale,shape_bn,pro,n,p,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine esvei
+        subroutine mevei(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,scale,shape_bn,pro,scl,shp,w) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer dimension(2) :: maxi
+            double precision dimension(2) :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: scl
+            double precision dimension(*) :: shp
+            double precision dimension(p,*),depend(p) :: w
+        end subroutine mevei
+        subroutine meveip(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,scale,shape_bn,pro,scl,shp,w) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer dimension(2) :: maxi
+            double precision dimension(2) :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: scl
+            double precision dimension(*) :: shp
+            double precision dimension(p,*),depend(p) :: w
+        end subroutine meveip
+        subroutine msvei(x,z,n,p,g,maxi,tol,mu,scale,shape_bn,pro,scl,shp,w) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            integer :: maxi
+            double precision :: tol
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: scl
+            double precision dimension(*) :: shp
+            double precision dimension(p,*),depend(p) :: w
+        end subroutine msvei
+        subroutine msveip(x,z,n,p,g,pshrnk,pmu,pscale,pdof,maxi,tol,mu,scale,shape_bn,pro,scl,shp,w) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            integer :: maxi
+            double precision :: tol
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: scl
+            double precision dimension(*) :: shp
+            double precision dimension(p,*),depend(p) :: w
+        end subroutine msveip
+        subroutine esvev(x,mu,scale,shape_bn,o,pro,n,p,g,vinv,v,w,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(*) :: v
+            double precision dimension(*) :: w
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine esvev
+        subroutine mevev(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,lwork,mu,scale,shape_bn,o,pro,w,s) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer dimension(2) :: maxi
+            double precision dimension(2) :: tol
+            double precision :: eps
+            integer :: lwork
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+            double precision dimension(*) :: s
+        end subroutine mevev
+        subroutine mevevp(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,lwork,mu,scale,shape_bn,o,pro,w,s) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer dimension(2) :: maxi
+            double precision dimension(2) :: tol
+            double precision :: eps
+            integer :: lwork
+            double precision dimension(p,*),depend(p) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+            double precision dimension(*) :: s
+        end subroutine mevevp
+        subroutine msvev(x,z,n,p,g,w,lwork,maxi,tol,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(*) :: w
+            integer :: lwork
+            integer :: maxi
+            double precision :: tol
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+        end subroutine msvev
+        subroutine msvevp(x,z,n,p,g,pshrnk,pmu,pscale,pdof,w,lwork,maxi,tol,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: w
+            integer :: lwork
+            integer :: maxi
+            double precision :: tol
+            double precision dimension(p,*),depend(p) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(*) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p) :: o
+            double precision dimension(*) :: pro
+        end subroutine msvevp
+        subroutine esvii(x,mu,sigsq,pro,n,p,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine esvii
+        subroutine hcvii(x,n,p,ic,ng,ns,alpha,v,nd,d) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            integer dimension(n),depend(n) :: ic
+            integer :: ng
+            integer :: ns
+            double precision :: alpha
+            double precision dimension(*) :: v
+            integer :: nd
+            double precision dimension(*) :: d
+        end subroutine hcvii
+        subroutine mevii(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine mevii
+        subroutine meviip(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine meviip
+        subroutine msvii(x,z,n,p,g,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine msvii
+        subroutine msviip(x,z,n,p,g,pshrnk,pmu,pscale,pdof,mu,sigsq,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: sigsq
+            double precision dimension(*) :: pro
+        end subroutine msviip
+        subroutine esvvi(x,mu,scale,shape_bn,pro,n,p,g,vinv,hood,z) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine esvvi
+        subroutine mevvi(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine mevvi
+        subroutine mevvip(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine mevvip
+        subroutine msvvi(x,z,n,p,g,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine msvvi
+        subroutine msvvip(x,z,n,p,g,pshrnk,pmu,pscale,pdof,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(p,*) :: mu
+            double precision dimension(*) :: scale
+            double precision dimension(p,*),depend(p) :: shape_bn
+            double precision dimension(*) :: pro
+        end subroutine msvvip
+        subroutine esvvv(chol,x,mu,sigma,pro,n,p,g,vinv,w,hood,z) ! in :mclust:mclust.f
+            logical :: chol
+            double precision dimension(n,*) :: x
+            double precision dimension(p,*) :: mu
+            double precision dimension(p,p,*),depend(p,p) :: sigma
+            double precision dimension(*) :: pro
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(*) :: w
+            double precision :: hood
+            double precision dimension(n,*),depend(n) :: z
+        end subroutine esvvv
+        subroutine hcvvv(x,n,p,ic,ng,ns,alpha,beta,v,u,s,r,nd,d) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(u,0)==p),depend(u) :: p=shape(u,0)
+            integer dimension(n),depend(n) :: ic
+            integer :: ng
+            integer :: ns
+            double precision :: alpha
+            double precision :: beta
+            double precision dimension(*) :: v
+            double precision dimension(p,*) :: u
+            double precision dimension(p,*),depend(p) :: s
+            double precision dimension(p,*),depend(p) :: r
+            integer :: nd
+            double precision dimension(*) :: d
+            double precision :: beta0
+            double precision :: alpha0
+            double precision :: ablog
+            common /vvvmcl/ beta0,alpha0,ablog
+        end subroutine hcvvv
+        function vvvtij(l,p,r,s,trac) ! in :mclust:mclust.f
+            integer :: l
+            integer, optional,check(shape(r,0)==p),depend(r) :: p=shape(r,0)
+            double precision dimension(p,*) :: r
+            double precision :: s
+            double precision :: trac
+            double precision :: beta
+            double precision :: alpha
+            double precision :: ablog
+            double precision :: vvvtij
+            common /vvvmcl/ beta,alpha,ablog
+        end function vvvtij
+        function det2mc(n,u,s) ! in :mclust:mclust.f
+            integer, optional,check(shape(u,0)==n),depend(u) :: n=shape(u,0)
+            double precision dimension(n,*) :: u
+            double precision :: s
+            double precision :: det2mc
+        end function det2mc
+        subroutine mevvv(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,u,pro,w,s) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision :: vinv
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*) :: mu
+            double precision dimension(p,p,*),depend(p,p) :: u
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+            double precision dimension(p,*),depend(p) :: s
+        end subroutine mevvv
+        subroutine mevvvp(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,u,pro,w,s) ! in :mclust:mclust.f
+            logical :: eqpro
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: vinv
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(n,*),depend(n) :: z
+            integer :: maxi
+            double precision :: tol
+            double precision :: eps
+            double precision dimension(p,*),depend(p) :: mu
+            double precision dimension(p,p,*),depend(p,p) :: u
+            double precision dimension(*) :: pro
+            double precision dimension(*) :: w
+            double precision dimension(p,*),depend(p) :: s
+        end subroutine mevvvp
+        subroutine msvvv(x,z,n,p,g,w,mu,u,pro,s) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
+            integer :: g
+            double precision dimension(*) :: w
+            double precision dimension(p,*) :: mu
+            double precision dimension(p,p,*),depend(p,p) :: u
+            double precision dimension(*) :: pro
+            double precision dimension(p,*),depend(p) :: s
+        end subroutine msvvv
+        subroutine msvvvp(x,z,n,p,g,pshrnk,pmu,pscale,pdof,w,mu,u,pro,s) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            double precision dimension(n,*),depend(n) :: z
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            integer :: g
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: w
+            double precision dimension(p,*),depend(p) :: mu
+            double precision dimension(p,p,*),depend(p,p) :: u
+            double precision dimension(*) :: pro
+            double precision dimension(p,*),depend(p) :: s
+        end subroutine msvvvp
+        subroutine mvn1d(x,n,mu,sigsq,hood) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            integer :: n
+            double precision :: mu
+            double precision :: sigsq
+            double precision :: hood
+        end subroutine mvn1d
+        subroutine mvn1p(x,n,pshrnk,pmu,pscale,pdof,mu,sigsq,hood) ! in :mclust:mclust.f
+            double precision dimension(*) :: x
+            integer :: n
+            double precision :: pshrnk
+            double precision :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision :: mu
+            double precision :: sigsq
+            double precision :: hood
+        end subroutine mvn1p
+        subroutine mnxiip(x,n,p,pshrnk,pmu,pscale,pdof,mu,sigsq,hood) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision :: hood
+        end subroutine mnxiip
+        subroutine mvnxii(x,n,p,mu,sigsq,hood) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            double precision dimension(*) :: mu
+            double precision :: sigsq
+            double precision :: hood
+        end subroutine mvnxii
+        subroutine mnxxip(x,n,p,pshrnk,pmu,pscale,pdof,mu,scale,shape_bn,hood) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision :: hood
+        end subroutine mnxxip
+        subroutine mvnxxi(x,n,p,mu,scale,shape_bn,hood) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            double precision dimension(*) :: mu
+            double precision :: scale
+            double precision dimension(*) :: shape_bn
+            double precision :: hood
+        end subroutine mvnxxi
+        subroutine mnxxxp(x,n,p,w,pshrnk,pmu,pscale,pdof,mu,u,hood) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(pscale,0)==p),depend(pscale) :: p=shape(pscale,0)
+            double precision dimension(*) :: w
+            double precision :: pshrnk
+            double precision dimension(*) :: pmu
+            double precision dimension(p,*) :: pscale
+            double precision :: pdof
+            double precision dimension(*) :: mu
+            double precision dimension(p,*),depend(p) :: u
+            double precision :: hood
+        end subroutine mnxxxp
+        subroutine mvnxxx(x,n,p,mu,u,hood) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer, optional,check(shape(u,0)==p),depend(u) :: p=shape(u,0)
+            double precision dimension(*) :: mu
+            double precision dimension(p,*) :: u
+            double precision :: hood
+        end subroutine mvnxxx
+        subroutine hceee(x,n,p,ic,ng,ns,io,jo,v,s,u,r) ! in :mclust:mclust.f
+            double precision dimension(n,*) :: x
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            integer :: p
+            integer dimension(n),depend(n) :: ic
+            integer :: ng
+            integer :: ns
+            integer dimension(*) :: io
+            integer dimension(*) :: jo
+            double precision dimension(*) :: v
+            double precision dimension(*) :: s
+            double precision dimension(*) :: u
+            double precision dimension(*) :: r
+        end subroutine hceee
+    end interface 
+end python module mclust
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
