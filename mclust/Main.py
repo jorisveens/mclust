@@ -1,5 +1,5 @@
-from fortran import mclustaddson
-from fortran import mclust
+from mclust.fortran import mclustaddson
+from mclust.fortran import mclust
 import numpy as np
 
 
