@@ -1116,21 +1116,21 @@ python module mclust ! in
         end subroutine msvvvp
         subroutine mvn1d(x,n,mu,sigsq,hood) ! in :mclust:mclust.f
             double precision dimension(*) :: x
-            integer :: n
-            double precision :: mu
-            double precision :: sigsq
-            double precision :: hood
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
+            double precision, intent(out) :: mu
+            double precision, intent(out) :: sigsq
+            double precision, intent(out) :: hood
         end subroutine mvn1d
         subroutine mvn1p(x,n,pshrnk,pmu,pscale,pdof,mu,sigsq,hood) ! in :mclust:mclust.f
             double precision dimension(*) :: x
-            integer :: n
+            integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             double precision :: pshrnk
             double precision :: pmu
             double precision :: pscale
             double precision :: pdof
-            double precision :: mu
-            double precision :: sigsq
-            double precision :: hood
+            double precision, intent(out) :: mu
+            double precision, intent(out) :: sigsq
+            double precision, intent(out) :: hood
         end subroutine mvn1p
         subroutine mnxiip(x,n,p,pshrnk,pmu,pscale,pdof,mu,sigsq,hood) ! in :mclust:mclust.f
             double precision dimension(n,*) :: x
