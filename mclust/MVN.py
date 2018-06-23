@@ -1,74 +1,152 @@
 from mclust.fortran import mclust
 from mclust.Exceptions import *
+from mclust.Models import Model, MixtureModel
+from mclust.Utility import round_sig
+from mclust.variance import *
+
 import numpy as np
 import sys
 import warnings
 
 
-class MVNData:
+class MVN(MixtureModel):
+    """Fit uni/multi-variate normal to data with specified prior"""
+    def fit(self, data, prior):
+        pass
 
-    def __init__(self, modelName, n, d, G, parameters, loglik, returnCode, prior=None):
-        self.modelName = modelName
-        self.prior = prior
-        self.n = n
-        self.d = d
-        self.G = G
-        self.parameters = parameters
-        self.loglik = loglik
-        self.ret = returnCode
-
-    def __str__(self):
-        return f"modelname: {self.modelName}\n" \
-               f"n: {self.n}\n" \
-               f"d: {self.d}\n" \
-               f"G: {self.G}\n" \
-               f"parameters: {self.parameters}\n" \
-               f"loglik: {self.loglik}\n" \
-               f"returnCode: {self.ret}\n" \
-               f"prior: {self.prior}\n"
+    def _check_output(self):
+        if self.loglik > round_sig(sys.float_info.max, 6):
+            warnings.warn("singular covariance")
+            self.loglik = None
+            self.returnCode = -1
+            return -1
+        self.returnCode = 0
+        return 0
 
 
-def mvnX(data, prior=None, warn=False):
-    if data.ndim != 1:
-        raise DimensionError("Data must be one dimensional.")
+class MVNX(MVN):
+    def __init__(self):
+        super().__init__()
+        self.model = Model.X
+        self.d = 1
+        self.G = 1
+        self.pro = 1
 
-    floatdata = data.astype(float, order='F')
-    ret = 0
+    def fit(self, data, prior=None):
+        if data.ndim != 1:
+            raise DimensionError("Data must be one dimensional.")
 
-    if prior is None:
-        mu, sigmasq, loglik = mclust.mvn1d(floatdata)
-    else:
-        raise NotImplementedError()
+        floatData = data.astype(float, order='F')
+        self.n = len(data)
 
-    if loglik > sys.float_info.max:
-        if warn:
-            warnings.warn("sigma-squared vanishes")
-        loglik = None
-        ret = -1
+        if prior is None:
+            self.mean, sigmasq, self.loglik = mclust.mvn1d(floatData)
+        else:
+            raise NotImplementedError()
 
-    variance = {
-        'modelName': 'X',
-        'd': 1,
-        'G': 1,
-        'sigmasq': 1
-    }
+        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
 
-    parameters = {
-        'pro': 1,
-        'mean': mu,
-        'variance': variance
-    }
-
-    return MVNData(
-        modelName="X",
-        prior=prior,
-        n=len(data),
-        d=1,
-        G=1,
-        parameters=parameters,
-        loglik=loglik,
-        returnCode=ret
-    )
+        return self._check_output()
 
 
-y = np.array([1,2,3,4,5,6,7,8])
+class MVNXII(MVN):
+    def __init__(self):
+        super().__init__()
+        self.model = Model.XII
+
+    def fit(self, data, prior=None):
+        if data.ndim != 2:
+            raise DimensionError("MVNXII requires two-dimensional data")
+        self.n = len(data)
+        self.d = data.shape[1]
+        self.G = 1
+        self.pro = 1
+
+        self.mean = np.zeros(self.d, float, order='F')
+        sigmasq = np.array(0, float, order='F')
+        self.loglik = np.array(0, float, order='F')
+
+        if prior is None:
+            data_copy = data.copy()
+            mclust.mvnxii(data_copy, self.d, self.mean, sigmasq, self.loglik)
+        else:
+            raise NotImplementedError()
+
+        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+
+        # TODO look if covariance matrix and list should be returned
+        # self.covariance = self.variance * np.identity(self.d, float)  # = Sigma
+        # self.covariance_list = np.array([self.covariance])  # =sigma
+        # scale = self.variance
+
+        return self._check_output()
+
+
+class MVNXXI(MVN):
+    def __init__(self):
+        super().__init__()
+        self.model = Model.XXI
+
+    def fit(self, data, prior=None):
+        if data.ndim != 2:
+            raise DimensionError("MVNXXI requires two-dimensional data")
+        self.n = len(data)
+        self.d = data.shape[1]
+        self.G = 1
+        self.pro = 1
+
+        self.mean = np.zeros(self.d, float, order='F')
+        scale = np.array(0, float, order='F')
+        shape = np.zeros(self.d, float, order='F')
+        self.loglik = np.array(0, float, order='F')
+
+        if prior is None:
+            data_copy = data.copy()
+            mclust.mvnxxi(data_copy, self.d, self.mean, scale, shape, self.loglik)
+        else:
+            raise NotImplementedError()
+
+        shape = np.identity(self.d, float) * shape
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+
+        return self._check_output()
+
+
+class MVNXXX(MVN):
+    def __init__(self):
+        super().__init__()
+        self.model = Model.XXX
+
+    def fit(self, data, prior=None):
+        if data.ndim != 2:
+            raise DimensionError("MVNXXX requires two-dimensional data")
+        self.n = len(data)
+        self.d = data.shape[1]
+        self.G = 1
+        self.pro = 1
+
+        self.mean = np.zeros(self.d, float, order='F')
+        cholsigma = np.zeros(self.d * self.d).reshape(self.d, self.d, order='F')
+        self.loglik = np.array(0, float, order='F')
+
+        if prior is None:
+            data_copy = data.copy()
+            mclust.mvnxxx(data_copy, self.mean, cholsigma, self.loglik)
+        else:
+            raise NotImplementedError()
+
+        self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
+
+        return self._check_output()
+
+
+def model_to_mvn(model):
+    return {
+        Model.X: MVNX(),
+        Model.E: MVNX(),
+        Model.V: MVNX(),
+        Model.EII: MVNXII(),
+        Model.VVV: MVNXXX(),
+        Model.EEE: MVNXXX()
+    }.get(model)
+

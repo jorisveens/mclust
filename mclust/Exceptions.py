@@ -4,3 +4,7 @@ class DimensionError(Exception):
 
 class ModelError(Exception):
     pass
+
+
+class AbstractMethodError(Exception):
+    pass
