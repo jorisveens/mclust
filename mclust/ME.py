@@ -65,10 +65,13 @@ class ME(MixtureModel):
         return 0
 
 
-class MEE(ME):
+class ME1Dimensional(ME):
     def __init__(self):
         super().__init__()
-        self.model = Model.E
+        self.sigmasq = None
+
+    def me_fortran(self, data, z, prior, control, vinv, k):
+        pass
 
     def fit(self, data, z, prior=None, control=None, vinv=None):
         super().fit(data, z, prior, control, vinv)
@@ -100,103 +103,72 @@ class MEE(ME):
         if np.any(z == None) or np.any(z < 0) or np.any(z > 1):
             raise ModelError("improper specification of z")
 
-        self.mean = np.zeros(G, float, order='F')
-        sigmasq = np.array(1, float, order='F')
-        self.pro = np.zeros(K, float, order='F')
+        self.me_fortran(data, z, prior, control, vinv, K)
+
+        self.mean = self.mean.transpose()
+
+        if np.any(self.sigmasq <= max(self.control.eps, 0)):
+            warnings.warn("sigma-squared falls below threshold")
+            self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
+            return -1
+        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+
+        return self._check_output()
+
+
+class MEE(ME1Dimensional):
+    def __init__(self):
+        super().__init__()
+        self.model = Model.E
+
+    def me_fortran(self, data, z, prior, control, vinv, k):
+        self.mean = np.zeros(self.G, float, order='F')
+        self.sigmasq = np.array(1, float, order='F')
+        self.pro = np.zeros(k, float, order='F')
         self.z = z
         if prior is None:
             mclust.me1e(self.control.equalPro,
                         data,
-                        G,
+                        self.G,
                         -1.0 if vinv is None else vinv,
                         self.z,
                         self.iterations,
                         self.err,
                         self.loglik,
                         self.mean,
-                        sigmasq,
+                        self.sigmasq,
                         self.pro
                         )
         else:
             raise NotImplementedError("prior not yet supported")
 
-        self.mean = self.mean.transpose()
 
-        if np.any(sigmasq <= max(self.control.eps, 0)):
-            warnings.warn("sigma-squared falls below threshold")
-            self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
-            return -1
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
-
-        return self._check_output()
-
-
-class MEV(ME):
+class MEV(ME1Dimensional):
     def __init__(self):
         super().__init__()
         self.model = Model.V
 
-    def fit(self, data, z, prior=None, control=None, vinv=None):
-        super().fit(data, z, prior, control, vinv)
-
-        # potential FIXME most of this code is the same to MEE.run
-        if data.ndim != 1:
-            raise ModelError("data must be 1 dimensional")
-        self.d = 1
-        n = len(data)
-        self.n = n
-        if z.shape[0] != n:
-            raise ModelError("row dimension of z should be equal length of the data")
-
-        K = z.shape[1]
-        G = K
-        if vinv is not None:
-            G = K - 1
-            if vinv <= 0:
-                vinv = hypvol(data, reciprocal=True)
-        self.G = G
-        self.vinv = vinv
-
-        if np.all(z == None):
-            warnings.warn("z is missing")
-            self.variance = None
-            self.pro = np.repeat([None], G)
-            self.mean = np.repeat([None], G)
-            return 9
-
-        if np.any(z == None) or np.any(z < 0) or np.any(z > 1):
-            raise ModelError("improper specification of z")
-
-        self.mean = np.zeros(G, float, order='F')
-        sigmasq = np.zeros(G, float, order='F')
-        self.pro = np.zeros(K, float, order='F')
+    def me_fortran(self, data, z, prior, control, vinv, k):
+        self.mean = np.zeros(self.G, float, order='F')
+        self.sigmasq = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(k, float, order='F')
         self.z = z
 
         if prior is None:
             mclust.me1v(self.control.equalPro,
                         data,
-                        G,
+                        self.G,
                         -1.0 if vinv is None else vinv,
                         self.z,
                         self.iterations,
                         self.err,
                         self.loglik,
                         self.mean,
-                        sigmasq,
+                        self.sigmasq,
                         self.pro
                         )
         else:
             raise NotImplementedError("prior not yet supported")
-
-        self.mean = self.mean.transpose()
-
-        if np.any(sigmasq <= max(self.control.eps, 0)):
-            warnings.warn("sigma-squared falls below threshold")
-            self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
-            return -1
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
-
-        return self._check_output()
 
 
 class MEX(ME):
