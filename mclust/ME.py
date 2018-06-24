@@ -120,6 +120,8 @@ class MEE(ME):
         else:
             raise NotImplementedError("prior not yet supported")
 
+        self.mean = self.mean.transpose()
+
         if np.any(sigmasq <= max(self.control.eps, 0)):
             warnings.warn("sigma-squared falls below threshold")
             self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
@@ -185,6 +187,8 @@ class MEV(ME):
                         )
         else:
             raise NotImplementedError("prior not yet supported")
+
+        self.mean = self.mean.transpose()
 
         if np.any(sigmasq <= max(self.control.eps, 0)):
             warnings.warn("sigma-squared falls below threshold")
@@ -285,6 +289,7 @@ class MEVVV(ME):
 
         # cholsigma needs to be transposed as the order fortran returns does not correspond
         # to the order python expects
+        self.mean = self.mean.transpose()
         cholsigma = cholsigma.transpose((2, 0, 1))
 
         self.variance = VarianceCholesky(self.d, self.G, cholsigma)

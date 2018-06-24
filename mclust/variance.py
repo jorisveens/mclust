@@ -3,7 +3,6 @@ import numpy as np
 from mclust.Exceptions import DimensionError
 
 
-# TODO make sure covariance returs a list of dimension g, d, d
 class Variance:
     def __init__(self, d, g):
         self.d = d
@@ -19,12 +18,21 @@ class Variance:
 class VarianceSigmasq(Variance):
     def __init__(self, d, g, sigmasq):
         super().__init__(d, g)
-        self.sigmasq = sigmasq
+        self.sigmasq = np.array(sigmasq)
 
     def get_covariance(self):
-        return self.sigmasq * np.identity(self.d)
+        if self.sigmasq.ndim == 0:
+            # Model E and EII
+            return np.tile(self.sigmasq * np.identity(self.d), [self.G, 1]).reshape(self.G, self.d, self.d)
+        else:
+            # Model V en VII
+            covariance = np.zeros((self.G, self.d, self.d))
+            for i in range(len(self.sigmasq)):
+                covariance[i] = np.identity(self.d) * self.sigmasq[i]
+            return covariance
 
 
+# TODO make sure covariance returs a list of dimension g, d, d
 class VarianceDecomposition(Variance):
     def __init__(self, d, g, scale, shape, orientation=None):
         super().__init__(d, g)
@@ -42,7 +50,6 @@ class VarianceCholesky(Variance):
         if cholsigma.ndim != 3:
             raise DimensionError("cholsigma should have 3 dimensions")
         self.cholsigma = cholsigma
-        print(self.get_covariance())
 
     def get_covariance(self):
         # TODO  implement unchol

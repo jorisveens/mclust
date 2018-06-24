@@ -45,6 +45,7 @@ class MVNX(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.mean = np.array(self.mean).transpose()
 
         return self._check_output()
 
@@ -73,11 +74,7 @@ class MVNXII(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
-
-        # TODO look if covariance matrix and list should be returned
-        # self.covariance = self.variance * np.identity(self.d, float)  # = Sigma
-        # self.covariance_list = np.array([self.covariance])  # =sigma
-        # scale = self.variance
+        self.mean = np.array([self.mean]).transpose()
 
         return self._check_output()
 
@@ -108,6 +105,7 @@ class MVNXXI(MVN):
 
         shape = np.identity(self.d, float) * shape
         self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.mean = np.array([self.mean]).transpose()
 
         return self._check_output()
 
@@ -136,6 +134,7 @@ class MVNXXX(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
+        self.mean = np.array([self.mean]).transpose()
 
         return self._check_output()
 
