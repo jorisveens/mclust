@@ -213,10 +213,37 @@ class MEMultiDimensional(ME):
         return super()._handle_input(data, z, prior, control, vinv)
 
 
-class MEEEE(ME):
+class MEEEE(MEMultiDimensional):
     def __init__(self):
         super().__init__()
         self.model = Model.EEE
+
+    def me_fortran(self, data, z, prior, control, vinv):
+        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
+        cholsigma = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
+        self.pro = np.zeros(z.shape[1], float, order='F')
+        w = np.zeros(self.d, float, order='F')
+        self.z = z
+
+        if prior is None:
+            mclust.meeee(self.control.equalPro,
+                         data,
+                         self.G,
+                         -1.0 if vinv is None else vinv,
+                         self.z,
+                         self.iterations,
+                         self.err,
+                         self.loglik,
+                         self.mean,
+                         cholsigma,
+                         self.pro,
+                         w
+                         )
+        else:
+            return NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
 
 
 class MEVVV(MEMultiDimensional):
@@ -263,5 +290,6 @@ def model_to_me(model):
         Model.E: MEE(),
         Model.V: MEV(),
         Model.X: MEX(),
-        Model.VVV: MEVVV()
+        Model.VVV: MEVVV(),
+        model.EEE: MEEEE()
     }.get(model)

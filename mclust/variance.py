@@ -53,7 +53,11 @@ class VarianceCholesky(Variance):
 
     def get_covariance(self):
         # TODO  implement unchol
-        result = self.cholsigma.copy()
-        for g in range(self.G):
-            result[g] = result[g].transpose().dot(result[g])
+        result = np.zeros((self.G, self.d, self.d))
+        if self.cholsigma.shape[0] == 1:
+            for g in range(self.G):
+                result[g] = self.cholsigma[0].transpose().dot(self.cholsigma[0])
+        else:
+            for g in range(self.G):
+                result[g] = self.cholsigma[g].transpose().dot(self.cholsigma[g])
         return result

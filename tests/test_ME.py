@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from mclust.Utility import qclass, unmap
-from mclust.ME import MEE, MEV, MEVVV
+from mclust.ME import *
 from mclust.BIC import random_z
 
 
@@ -28,13 +28,16 @@ class MyTestCase(unittest.TestCase):
         print(me)
 
     def test_MEVVV(self):
-        z = random_z(self.diabetes.shape[0], 4)
+        z = random_z(self.diabetes.shape[0], 3)
         model = MEVVV()
         print(model.fit(self.diabetes, z))
         print(model)
-        print(model.mean[0])
-        print(model.variance.get_covariance().shape)
-        print(model.variance.get_covariance()[1])
+
+    def test_MEEEE(self):
+        z = random_z(self.diabetes.shape[0], 7)
+        model = MEEEE()
+        model.fit(self.diabetes, z)
+        print(model)
 
 
 if __name__ == '__main__':

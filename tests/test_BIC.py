@@ -50,8 +50,21 @@ class TestMVN(unittest.TestCase):
         print(out.groups)
 
     def test_BIC_VVV(self):
-        # TODO continue fails with 9 groups and R does not fail
         out = mclustBIC(self.diabetes, models=[Model.VVV])
+        print(out.BICMatrix)
+        print(out.returnCodes)
+        print(out.models)
+        print(out.groups)
+
+    def test_BIC_EEE(self):
+        out = mclustBIC(self.diabetes, models=[Model.EEE])
+        print(out.BICMatrix)
+        print(out.returnCodes)
+        print(out.models)
+        print(out.groups)
+
+    def test_multi_dim(self):
+        out = mclustBIC(self.diabetes, models=[Model.EEE, Model.VVV])
         print(out.BICMatrix)
         print(out.returnCodes)
         print(out.models)

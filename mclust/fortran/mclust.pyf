@@ -193,20 +193,20 @@ python module mclust ! in
             double precision :: detmc2
         end function detmc2
         subroutine meeee(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,u,pro,w) ! in :mclust:mclust.f
-            logical :: eqpro
-            double precision dimension(n,*) :: x
+            logical, intent(in) :: eqpro
+            double precision dimension(n,*), intent(in) :: x
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
-            integer :: g
-            double precision :: vinv
-            double precision dimension(n,*),depend(n) :: z
-            integer :: maxi
-            double precision :: tol
-            double precision :: eps
-            double precision dimension(p,*) :: mu
-            double precision dimension(p,*),depend(p) :: u
-            double precision dimension(*) :: pro
-            double precision dimension(*) :: w
+            integer, intent(in) :: g
+            double precision, intent(in) :: vinv
+            double precision dimension(n,*),depend(n), intent(inout) :: z
+            integer, intent(inout) :: maxi
+            double precision, intent(inout) :: tol
+            double precision, intent(inout) :: eps
+            double precision dimension(p,*), intent(inout) :: mu
+            double precision dimension(p,*),depend(p), intent(inout) :: u
+            double precision dimension(*), intent(inout) :: pro
+            double precision dimension(*), intent(in) :: w
         end subroutine meeee
         subroutine meeeep(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,mu,u,pro,w) ! in :mclust:mclust.f
             logical :: eqpro
