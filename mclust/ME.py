@@ -42,11 +42,44 @@ class ME(MixtureModel):
                setting Vinv=None.
         :return: return code of Algorithm
         """
+        ret = self._handle_input(data, z, prior, control, vinv)
+        if ret != 0:
+            return ret
+        self.me_fortran(data, z, prior, control, vinv)
+        return self._handle_output()
+
+    def _handle_input(self, data, z, prior, control, vinv):
         if control is not None:
             self._set_control(control)
+
+        self.n = len(data)
+        if z.shape[0] != self.n:
+            raise ModelError("row dimension of z should be equal length of the data")
+
+        G = z.shape[1]
+        if vinv is not None:
+            G = z.shape[1] - 1
+            if vinv <= 0:
+                vinv = hypvol(data, reciprocal=True)
+        self.G = G
+        self.vinv = vinv
+
+        if np.all(z == None):
+            warnings.warn("z is missing")
+            self.variance = None
+            self.pro = np.repeat([None], G)
+            self.mean = np.repeat([None], G)
+            return 9
+
+        if np.any(z == None) or np.any(z < 0) or np.any(z > 1):
+            raise ModelError("improper specification of z")
+
+        return 0
+
+    def me_fortran(self, data, z, prior, control, vinv):
         pass
 
-    def _check_output(self):
+    def _handle_output(self):
         if self.loglik > round_sig(np.finfo(float).max, 6) or self.loglik == float('nan'):
             warnings.warn("singular covariance")
             self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
@@ -70,50 +103,18 @@ class ME1Dimensional(ME):
         super().__init__()
         self.sigmasq = None
 
-    def me_fortran(self, data, z, prior, control, vinv, k):
-        pass
-
-    def fit(self, data, z, prior=None, control=None, vinv=None):
-        super().fit(data, z, prior, control, vinv)
-
+    def _handle_input(self, data, z, prior, control, vinv):
         if data.ndim != 1:
             raise ModelError("data must be 1 dimensional")
         self.d = 1
-        n = len(data)
-        self.n = n
-        if z.shape[0] != n:
-            raise ModelError("row dimension of z should be equal length of the data")
+        return super()._handle_input(data, z, prior, control, vinv)
 
-        K = z.shape[1]
-        G = K
-        if vinv is not None:
-            G = K - 1
-            if vinv <= 0:
-                vinv = hypvol(data, reciprocal=True)
-        self.G = G
-        self.vinv = vinv
-
-        if np.all(z == None):
-            warnings.warn("z is missing")
-            self.variance = None
-            self.pro = np.repeat([None], G)
-            self.mean = np.repeat([None], G)
-            return 9
-
-        if np.any(z == None) or np.any(z < 0) or np.any(z > 1):
-            raise ModelError("improper specification of z")
-
-        self.me_fortran(data, z, prior, control, vinv, K)
-
-        self.mean = self.mean.transpose()
-
+    def _handle_output(self):
         if np.any(self.sigmasq <= max(self.control.eps, 0)):
             warnings.warn("sigma-squared falls below threshold")
             self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
             return -1
-        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
-
-        return self._check_output()
+        return super()._handle_output()
 
 
 class MEE(ME1Dimensional):
@@ -121,10 +122,10 @@ class MEE(ME1Dimensional):
         super().__init__()
         self.model = Model.E
 
-    def me_fortran(self, data, z, prior, control, vinv, k):
+    def me_fortran(self, data, z, prior, control, vinv):
         self.mean = np.zeros(self.G, float, order='F')
         self.sigmasq = np.array(1, float, order='F')
-        self.pro = np.zeros(k, float, order='F')
+        self.pro = np.zeros(z.shape[1], float, order='F')
         self.z = z
         if prior is None:
             mclust.me1e(self.control.equalPro,
@@ -142,16 +143,19 @@ class MEE(ME1Dimensional):
         else:
             raise NotImplementedError("prior not yet supported")
 
+        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+        self.mean = np.array([self.mean]).transpose()
+
 
 class MEV(ME1Dimensional):
     def __init__(self):
         super().__init__()
         self.model = Model.V
 
-    def me_fortran(self, data, z, prior, control, vinv, k):
+    def me_fortran(self, data, z, prior, control, vinv):
         self.mean = np.zeros(self.G, float, order='F')
         self.sigmasq = np.zeros(self.G, float, order='F')
-        self.pro = np.zeros(k, float, order='F')
+        self.pro = np.zeros(z.shape[1], float, order='F')
         self.z = z
 
         if prior is None:
@@ -169,6 +173,9 @@ class MEV(ME1Dimensional):
                         )
         else:
             raise NotImplementedError("prior not yet supported")
+
+        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+        self.mean = np.array([self.mean]).transpose()
 
 
 class MEX(ME):
@@ -198,45 +205,29 @@ class MEX(ME):
         return self.returnCode
 
 
-class MEVVV(ME):
+class MEMultiDimensional(ME):
+    def _handle_input(self, data, z, prior, control, vinv):
+        if data.ndim != 2:
+            raise ModelError("data must be 2 dimensional")
+        self.d = data.shape[1]
+        return super()._handle_input(data, z, prior, control, vinv)
+
+
+class MEEEE(ME):
+    def __init__(self):
+        super().__init__()
+        self.model = Model.EEE
+
+
+class MEVVV(MEMultiDimensional):
     def __init__(self):
         super().__init__()
         self.model = Model.VVV
 
-    def fit(self, data, z, prior=None, control=None, vinv=None):
-        super().fit(data, z, prior, control, vinv)
-
-        if data.ndim != 2:
-            raise ModelError("data must be 2 dimensional")
-        self.d = data.shape[1]
-        self.n = len(data)
-        if z.shape[0] != self.n:
-            raise ModelError("row dimension of z should be equal length of the data")
-
-        K = z.shape[1]
-        self.G = K
-        self.vinv = vinv
-        self.prior = prior
-
-        if vinv is not None:
-            self.G = K - 1
-            if vinv <= 0:
-                vinv = hypvol(data, reciprocal=True)
-
-        if np.all(z == None):
-            warnings.warn("z is missing")
-            self.variance = None
-            self.pro = np.repeat([None], self.G)
-            self.mean = np.repeat([None], self.G * self.d).reshape(self.d, self.G)
-            self.z = z
-            return 9
-
-        if np.any(z == None) or np.any(z < 0) or np.any(z > 1):
-            raise ModelError("improper specification of z")
-
+    def me_fortran(self, data, z, prior, control, vinv):
         self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
         cholsigma = np.zeros(self.d * self.d * self.G, float).reshape(self.d, self.d, self.G, order='F')
-        self.pro = np.zeros(K, float, order='F')
+        self.pro = np.zeros(z.shape[1], float, order='F')
         w = np.zeros(self.d, float, order='F')
         s = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
         self.z = z
@@ -266,7 +257,6 @@ class MEVVV(ME):
 
         self.variance = VarianceCholesky(self.d, self.G, cholsigma)
 
-        return self._check_output()
 
 def model_to_me(model):
     return {
