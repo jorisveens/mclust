@@ -13,7 +13,7 @@ import warnings
 class MVN(MixtureModel):
     """Fit uni/multi-variate normal to data with specified prior"""
     def fit(self):
-        pass
+        self.z = np.full((self.n, 1), 1)
 
     def _check_output(self):
         if self.loglik > round_sig(sys.float_info.max, 6):
@@ -35,6 +35,7 @@ class MVNX(MVN):
         self.pro = 1
 
     def fit(self):
+        super().fit()
         floatData = self.data.astype(float, order='F')
 
         if self.prior is None:
@@ -56,6 +57,7 @@ class MVNXII(MVN):
         self.model = Model.XII
 
     def fit(self):
+        super().fit()
         self.G = 1
         self.pro = 1
 
@@ -83,6 +85,7 @@ class MVNXXI(MVN):
         self.model = Model.XXI
 
     def fit(self):
+        super().fit()
         self.G = 1
         self.pro = 1
 
@@ -112,6 +115,7 @@ class MVNXXX(MVN):
         self.model = Model.XXX
 
     def fit(self):
+        super().fit()
         self.G = 1
         self.pro = 1
 

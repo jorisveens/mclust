@@ -78,6 +78,7 @@ class MixtureModel:
 
         self.loglik = None
         self.returnCode = None
+        self.z = None
 
         self.data = data
         self.prior = prior
