@@ -10,19 +10,19 @@ class TestMVNXXI(TestCase):
     test_data = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)])
 
     def test_fit_XII(self):
-        model = MVNXII()
-        model.fit(self.test_data_2d)
+        model = MVNXII(self.test_data_2d)
+        model.fit()
         print(model)
 
     def test_fit_XXI(self):
-        model = MVNXXI()
-        model.fit(self.test_data_2d)
+        model = MVNXXI(self.test_data_2d)
+        model.fit()
         print(model)
         print(model.variance)
 
     def test_fit_XXX(self):
         print(self.test_data)
-        model = MVNXXX()
-        model.fit(self.test_data)
+        model = MVNXXX(self.test_data)
+        model.fit()
         print(model)
         # print(model.variance)

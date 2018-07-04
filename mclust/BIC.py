@@ -65,12 +65,12 @@ def mclustBIC(data, g=None, models=None, prior=None, initialization={'noise': No
     return_codes = np.full((l, m), None)
 
     if initialization['noise'] is None:
-        # FIXME possible merge with other groups be using model_to_x(model, g)
+        # possibly merge with other groups be using model_to_x(model, g)
         if g[0] == 1:
             for modelIndex, model in enumerate(models):
                 if bic_values[0, modelIndex] is None:
-                    mod = model_to_mvn(model)
-                    ret_code = mod.fit(data, prior)
+                    mod = model_to_mvn(model, data, prior)
+                    ret_code = mod.fit()
                     return_codes[0, modelIndex] = ret_code
                     bic_values[0, modelIndex] = bic(mod, equalpro=False)
         # TODO pre specified hcpairs
@@ -84,7 +84,6 @@ def mclustBIC(data, g=None, models=None, prior=None, initialization={'noise': No
         else:
             hcPairs = None
         #   hcPairs <- hc(data = data, modelName = "E")
-        # FIXME for now only case for 1 dimension
         for groupIndex, group in enumerate(g):
             if group == 1:
                 continue
@@ -99,8 +98,8 @@ def mclustBIC(data, g=None, models=None, prior=None, initialization={'noise': No
                     warnings.warn("there are missing groups")
 
                 # FIXME pass control parameter
-                mod = model_to_me(model)
-                ret_code = mod.fit(data, z, prior)
+                mod = model_to_me(model, data, prior)
+                ret_code = mod.fit(z)
                 bic_values[groupIndex, modelIndex] = bic(mod, equalpro=False)
                 return_codes[groupIndex, modelIndex] = ret_code
 

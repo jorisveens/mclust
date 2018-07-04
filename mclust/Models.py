@@ -65,9 +65,9 @@ class Model(Enum):
         return nparams
 
 
+# POSSIBLY add z to all models (only one for MVN)
 class MixtureModel:
-
-    def __init__(self):
+    def __init__(self, data, prior=None):
         self.model = None
         self.prior = None
         self.n = None
@@ -80,6 +80,9 @@ class MixtureModel:
 
         self.loglik = None
         self.returnCode = None
+
+        self.data = data
+        self.prior = prior
 
     def __str__(self):
         return f"modelname: {self.model}\n" \

@@ -11,7 +11,7 @@ import warnings
 
 class MVN(MixtureModel):
     """Fit uni/multi-variate normal to data with specified prior"""
-    def fit(self, data, prior):
+    def fit(self):
         pass
 
     def _check_output(self):
@@ -25,21 +25,21 @@ class MVN(MixtureModel):
 
 
 class MVNX(MVN):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None):
+        super().__init__(data, prior)
         self.model = Model.X
         self.d = 1
         self.G = 1
         self.pro = 1
 
-    def fit(self, data, prior=None):
-        if data.ndim != 1:
+    def fit(self):
+        if self.data.ndim != 1:
             raise DimensionError("Data must be one dimensional.")
 
-        floatData = data.astype(float, order='F')
-        self.n = len(data)
+        floatData = self.data.astype(float, order='F')
+        self.n = len(self.data)
 
-        if prior is None:
+        if self.prior is None:
             self.mean, sigmasq, self.loglik = mclust.mvn1d(floatData)
         else:
             raise NotImplementedError()
@@ -51,15 +51,15 @@ class MVNX(MVN):
 
 
 class MVNXII(MVN):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None):
+        super().__init__(data, prior)
         self.model = Model.XII
 
-    def fit(self, data, prior=None):
-        if data.ndim != 2:
+    def fit(self):
+        if self.data.ndim != 2:
             raise DimensionError("MVNXII requires two-dimensional data")
-        self.n = len(data)
-        self.d = data.shape[1]
+        self.n = len(self.data)
+        self.d = self.data.shape[1]
         self.G = 1
         self.pro = 1
 
@@ -67,8 +67,8 @@ class MVNXII(MVN):
         sigmasq = np.array(0, float, order='F')
         self.loglik = np.array(0, float, order='F')
 
-        if prior is None:
-            data_copy = data.copy()
+        if self.prior is None:
+            data_copy = self.data.copy()
             mclust.mvnxii(data_copy, self.d, self.mean, sigmasq, self.loglik)
         else:
             raise NotImplementedError()
@@ -80,15 +80,15 @@ class MVNXII(MVN):
 
 
 class MVNXXI(MVN):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None):
+        super().__init__(data, prior)
         self.model = Model.XXI
 
-    def fit(self, data, prior=None):
-        if data.ndim != 2:
+    def fit(self):
+        if self.data.ndim != 2:
             raise DimensionError("MVNXXI requires two-dimensional data")
-        self.n = len(data)
-        self.d = data.shape[1]
+        self.n = len(self.data)
+        self.d = self.data.shape[1]
         self.G = 1
         self.pro = 1
 
@@ -97,8 +97,8 @@ class MVNXXI(MVN):
         shape = np.zeros(self.d, float, order='F')
         self.loglik = np.array(0, float, order='F')
 
-        if prior is None:
-            data_copy = data.copy()
+        if self.prior is None:
+            data_copy = self.data.copy()
             mclust.mvnxxi(data_copy, self.d, self.mean, scale, shape, self.loglik)
         else:
             raise NotImplementedError()
@@ -111,15 +111,15 @@ class MVNXXI(MVN):
 
 
 class MVNXXX(MVN):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None):
+        super().__init__(data, prior)
         self.model = Model.XXX
 
-    def fit(self, data, prior=None):
-        if data.ndim != 2:
+    def fit(self):
+        if self.data.ndim != 2:
             raise DimensionError("MVNXXX requires two-dimensional data")
-        self.n = len(data)
-        self.d = data.shape[1]
+        self.n = len(self.data)
+        self.d = self.data.shape[1]
         self.G = 1
         self.pro = 1
 
@@ -127,8 +127,8 @@ class MVNXXX(MVN):
         cholsigma = np.zeros(self.d * self.d).reshape(self.d, self.d, order='F')
         self.loglik = np.array(0, float, order='F')
 
-        if prior is None:
-            data_copy = data.copy()
+        if self.prior is None:
+            data_copy = self.data.copy()
             mclust.mvnxxx(data_copy, self.mean, cholsigma, self.loglik)
         else:
             raise NotImplementedError()
@@ -139,13 +139,13 @@ class MVNXXX(MVN):
         return self._check_output()
 
 
-def model_to_mvn(model):
+def model_to_mvn(model, data, prior=None):
     return {
-        Model.X: MVNX(),
-        Model.E: MVNX(),
-        Model.V: MVNX(),
-        Model.EII: MVNXII(),
-        Model.VVV: MVNXXX(),
-        Model.EEE: MVNXXX()
+        Model.X: MVNX(data, prior),
+        Model.E: MVNX(data, prior),
+        Model.V: MVNX(data, prior),
+        Model.EII: MVNXII(data, prior),
+        Model.VVV: MVNXXX(data, prior),
+        Model.EEE: MVNXXX(data, prior)
     }.get(model)
 

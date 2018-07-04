@@ -13,8 +13,8 @@ from mclust.variance import *
 
 
 class ME(MixtureModel):
-    def __init__(self, control=EMControl()):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior)
         self._set_control(control)
         self.z = None
         self.vinv = None
@@ -25,7 +25,7 @@ class ME(MixtureModel):
         self.loglik = np.array(control.eps, order='F')
         self.control = control
 
-    def fit(self, data, z, prior=None, control=None, vinv=None):
+    def fit(self, z, control=None, vinv=None):
         """
         Runs ME algorithm on data starting with probabilities defined in z
 
@@ -42,17 +42,17 @@ class ME(MixtureModel):
                setting Vinv=None.
         :return: return code of Algorithm
         """
-        ret = self._handle_input(data, z, prior, control, vinv)
+        ret = self._handle_input(z, control, vinv)
         if ret != 0:
             return ret
-        self.me_fortran(data, z, prior, control, vinv)
+        self.me_fortran(z, control, vinv)
         return self._handle_output()
 
-    def _handle_input(self, data, z, prior, control, vinv):
+    def _handle_input(self, z, control, vinv):
         if control is not None:
             self._set_control(control)
 
-        self.n = len(data)
+        self.n = len(self.data)
         if z.shape[0] != self.n:
             raise ModelError("row dimension of z should be equal length of the data")
 
@@ -60,7 +60,7 @@ class ME(MixtureModel):
         if vinv is not None:
             G = z.shape[1] - 1
             if vinv <= 0:
-                vinv = hypvol(data, reciprocal=True)
+                vinv = hypvol(self.data, reciprocal=True)
         self.G = G
         self.vinv = vinv
 
@@ -76,7 +76,7 @@ class ME(MixtureModel):
 
         return 0
 
-    def me_fortran(self, data, z, prior, control, vinv):
+    def me_fortran(self, z, control, vinv):
         pass
 
     def _handle_output(self):
@@ -99,15 +99,15 @@ class ME(MixtureModel):
 
 
 class ME1Dimensional(ME):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         self.sigmasq = None
 
-    def _handle_input(self, data, z, prior, control, vinv):
-        if data.ndim != 1:
+    def _handle_input(self, z, control, vinv):
+        if self.data.ndim != 1:
             raise ModelError("data must be 1 dimensional")
         self.d = 1
-        return super()._handle_input(data, z, prior, control, vinv)
+        return super()._handle_input(z, control, vinv)
 
     def _handle_output(self):
         if np.any(self.sigmasq <= max(self.control.eps, 0)):
@@ -118,18 +118,18 @@ class ME1Dimensional(ME):
 
 
 class MEE(ME1Dimensional):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         self.model = Model.E
 
-    def me_fortran(self, data, z, prior, control, vinv):
+    def me_fortran(self, z, control, vinv):
         self.mean = np.zeros(self.G, float, order='F')
         self.sigmasq = np.array(1, float, order='F')
         self.pro = np.zeros(z.shape[1], float, order='F')
         self.z = z
-        if prior is None:
+        if self.prior is None:
             mclust.me1e(self.control.equalPro,
-                        data,
+                        self.data,
                         self.G,
                         -1.0 if vinv is None else vinv,
                         self.z,
@@ -148,19 +148,19 @@ class MEE(ME1Dimensional):
 
 
 class MEV(ME1Dimensional):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         self.model = Model.V
 
-    def me_fortran(self, data, z, prior, control, vinv):
+    def me_fortran(self, z, control, vinv):
         self.mean = np.zeros(self.G, float, order='F')
         self.sigmasq = np.zeros(self.G, float, order='F')
         self.pro = np.zeros(z.shape[1], float, order='F')
         self.z = z
 
-        if prior is None:
+        if self.prior is None:
             mclust.me1v(self.control.equalPro,
-                        data,
+                        self.data,
                         self.G,
                         -1.0 if vinv is None else vinv,
                         self.z,
@@ -179,15 +179,15 @@ class MEV(ME1Dimensional):
 
 
 class MEX(ME):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         self.model = Model.X
 
-    def fit(self, data, z, prior=None, control=None, vinv=None):
-        if data.ndim != 1:
+    def fit(self, z, control=None, vinv=None):
+        if self.data.ndim != 1:
             raise ModelError("data must be 1 dimensional")
         self.d = 1
-        n = len(data)
+        n = len(self.data)
         self.n = n
         if z.shape[0] != n:
             raise ModelError("row dimension of z should be equal length of the data")
@@ -195,9 +195,9 @@ class MEX(ME):
         self.G = z.shape[1]
         self.z = z
 
-        mvn = MVNX()
-        self.prior = prior
-        self.returnCode = mvn.fit(data, prior)
+        mvn = MVNX(self.data, self.prior)
+        self.prior = self.prior
+        self.returnCode = mvn.fit()
         self.loglik = mvn.loglik
         self.mean = mvn.mean
         self.variance = mvn.variance
@@ -206,28 +206,28 @@ class MEX(ME):
 
 
 class MEMultiDimensional(ME):
-    def _handle_input(self, data, z, prior, control, vinv):
-        if data.ndim != 2:
+    def _handle_input(self, z, control, vinv):
+        if self.data.ndim != 2:
             raise ModelError("data must be 2 dimensional")
-        self.d = data.shape[1]
-        return super()._handle_input(data, z, prior, control, vinv)
+        self.d = self.data.shape[1]
+        return super()._handle_input(z, control, vinv)
 
 
 class MEEEE(MEMultiDimensional):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         self.model = Model.EEE
 
-    def me_fortran(self, data, z, prior, control, vinv):
+    def me_fortran(self,  z,  control, vinv):
         self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
         cholsigma = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
         self.pro = np.zeros(z.shape[1], float, order='F')
         w = np.zeros(self.d, float, order='F')
         self.z = z
 
-        if prior is None:
+        if self.prior is None:
             mclust.meeee(self.control.equalPro,
-                         data,
+                         self.data,
                          self.G,
                          -1.0 if vinv is None else vinv,
                          self.z,
@@ -247,11 +247,11 @@ class MEEEE(MEMultiDimensional):
 
 
 class MEVVV(MEMultiDimensional):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         self.model = Model.VVV
 
-    def me_fortran(self, data, z, prior, control, vinv):
+    def me_fortran(self, z, control, vinv):
         self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
         cholsigma = np.zeros(self.d * self.d * self.G, float).reshape(self.d, self.d, self.G, order='F')
         self.pro = np.zeros(z.shape[1], float, order='F')
@@ -259,9 +259,9 @@ class MEVVV(MEMultiDimensional):
         s = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
         self.z = z
 
-        if prior is None:
+        if self.prior is None:
             mclust.mevvv(self.control.equalPro,
-                         data,
+                         self.data,
                          self.G,
                          -1.0 if vinv is None else vinv,
                          self.z,
@@ -285,11 +285,11 @@ class MEVVV(MEMultiDimensional):
         self.variance = VarianceCholesky(self.d, self.G, cholsigma)
 
 
-def model_to_me(model):
+def model_to_me(model, data, prior=None, control=EMControl()):
     return {
-        Model.E: MEE(),
-        Model.V: MEV(),
-        Model.X: MEX(),
-        Model.VVV: MEVVV(),
-        model.EEE: MEEEE()
+        Model.E: MEE(data, prior, control),
+        Model.V: MEV(data, prior, control),
+        Model.X: MEX(data, prior, control),
+        Model.VVV: MEVVV(data, prior, control),
+        model.EEE: MEEEE(data, prior, control)
     }.get(model)

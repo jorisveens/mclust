@@ -15,28 +15,28 @@ class MyTestCase(unittest.TestCase):
     def test_MEE(self):
         z = unmap(qclass(self.testData, 2))
         print(self.testData.shape)
-        me = MEE()
-        me.fit(self.testData, z)
+        me = MEE(self.testData)
+        me.fit(z)
         print(me.variance.get_covariance())
         print(me)
 
     def test_MEV(self):
         z = unmap(qclass(self.testData, 2))
-        me = MEV()
-        me.fit(self.testData, z)
+        me = MEV(self.testData)
+        me.fit(z)
         print(me.variance.get_covariance())
         print(me)
 
     def test_MEVVV(self):
         z = random_z(self.diabetes.shape[0], 3)
-        model = MEVVV()
-        print(model.fit(self.diabetes, z))
+        model = MEVVV(self.diabetes)
+        print(model.fit(z))
         print(model)
 
     def test_MEEEE(self):
         z = random_z(self.diabetes.shape[0], 7)
-        model = MEEEE()
-        model.fit(self.diabetes, z)
+        model = MEEEE(self.diabetes)
+        model.fit(z)
         print(model)
 
 
