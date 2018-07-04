@@ -1,5 +1,4 @@
 import numpy as np
-from math import log
 from collections import defaultdict
 import warnings
 
@@ -37,8 +36,6 @@ class BIC:
 
         self._handle_model_selection()
         self._handle_group_selection(initialization)
-        # TODO save all models in dict?
-        # TODO store MixtureModel
         self.fitted_models = defaultdict(lambda: None)
 
         if initialization['noise'] is None:
@@ -109,7 +106,7 @@ class BIC:
                     ret_matrix[group_index, model_index] = fitted.returnCode
         return ret_matrix
 
-    def pick_best(self):
+    def pick_best_model(self):
         bic_matrix = self.get_bic_matrix()
         index = np.unravel_index(np.argmax(bic_matrix), bic_matrix.shape)
         return self.fitted_models[self.models[index[1]], self.groups[index[0]]]

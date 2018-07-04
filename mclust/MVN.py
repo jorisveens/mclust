@@ -136,7 +136,6 @@ class MVNXXX(MVN):
 
 
 def model_to_mvn(model, data, prior=None):
-    print(f"model: {model}, dim: {data.ndim}")
     mod = {
         Model.X: MVNX,
         Model.E: MVNX,
