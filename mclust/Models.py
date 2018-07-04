@@ -1,4 +1,5 @@
 from enum import Enum
+from math import log
 
 from mclust.Exceptions import ModelError
 
@@ -87,6 +88,10 @@ class MixtureModel:
             self.d = 1
         else:
             self.d = data.shape[1]
+
+    def bic(self, noise=False, equalpro=False):
+        nparams = self.model.n_mclust_params(self.d, self.G, noise, equalpro)
+        return 2 * self.loglik - nparams * log(self.n)
 
     def __str__(self):
         return f"modelname: {self.model}\n" \
