@@ -33,7 +33,11 @@ def qclass(x, k):
     return cl
 
 
-def unmap(classification, groups=None, noise=None):
+def mclust_map(z):
+    return np.argmax(z, axis=1)
+
+
+def mclust_unmap(classification, groups=None, noise=None):
     """
     converts a classification to conditional probabilities
     classes are arranged in sorted order unless groups is specified

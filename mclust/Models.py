@@ -1,8 +1,12 @@
+import numpy as np
 from enum import Enum
-from math import log
+from math import log, sqrt, pow
 
 from mclust.Exceptions import ModelError
+from mclust.Utility import mclust_map
 
+# TODO How to structre mstep, estep, mvn and me classes, oe for each model
+# or each model is a seperate class with functions for each
 
 class Model(Enum):
     E = 'E'
@@ -92,6 +96,20 @@ class MixtureModel:
     def bic(self, noise=False, equalpro=False):
         nparams = self.model.n_mclust_params(self.d, self.G, noise, equalpro)
         return 2 * self.loglik - nparams * log(self.n)
+
+    def classify(self):
+        if self.returnCode is None:
+            raise ModelError("Model is not fitted yet, was fit called on this model?")
+        elif self.returnCode != 0:
+            raise ModelError("Model not fitted correctly, check warnings and returnCode for more information.")
+        if self.G == 1:
+            return np.repeat(1, self.n)
+
+        if pow((np.sum(self.pro) - np.sum(np.mean(self.z, axis=0))), 2) > sqrt(np.finfo(float).eps):
+            print("pro and z mean condition thingy holds")
+            # CONTINUE mstep
+
+        return mclust_map(self.z)
 
     def __str__(self):
         return f"modelname: {self.model}\n" \

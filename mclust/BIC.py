@@ -5,7 +5,7 @@ import warnings
 from mclust.Exceptions import ModelError
 from mclust.MVN import model_to_mvn
 from mclust.ME import model_to_me
-from mclust.Utility import qclass, unmap
+from mclust.Utility import qclass, mclust_unmap
 from mclust.Models import Model
 
 
@@ -55,7 +55,7 @@ class BIC:
                     if self.fitted_models[model, group] is not None:
                         continue
 
-                    z = unmap(qclass(data, group)) if self.d == 1 else random_z(self.n, group)
+                    z = mclust_unmap(qclass(data, group)) if self.d == 1 else random_z(self.n, group)
                     if min(np.apply_along_axis(sum, 0, z)) == 0:
                         warnings.warn("there are missing groups")
 

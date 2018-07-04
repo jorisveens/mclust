@@ -66,7 +66,9 @@ class TestMVN(unittest.TestCase):
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
-        print(out.pick_best())
+        model = out.pick_best_model()
+        print(model)
+        print(model.classify())
 
 
 if __name__ == '__main__':
