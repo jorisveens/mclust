@@ -1,5 +1,6 @@
 import numpy as np
 from math import log
+from collections import defaultdict
 import warnings
 
 from mclust.Exceptions import ModelError
@@ -9,109 +10,112 @@ from mclust.Utility import qclass, unmap
 from mclust.Models import Model
 
 
-class BICData:
-    def __init__(self, BICMatrix, returnCodes, groups, models):
-        self.BICMatrix = BICMatrix
-        self.returnCodes = returnCodes
+class BIC:
+    def __init__(self, data, groups=None, models=None, prior=None, initialization={'noise': None}):
+        """
+        Calculate BIC values for data for g groups models specified  by modelNames.
+
+        :raises ModelError if G or modelNames are incorrectly specified.
+        :modifies g, modelnames
+
+        :param data: data used for fitting the models
+        :param g: list of amount of groups to consider, if none are applied use 1 to 9 groups
+        :param models: list of models that are fitted, if this is None all available models will be fitted
+        :param prior: prior belief of shape direction and scale
+        :param initialization: initialization parameters
+        :return: BICData containing BIC values and return codes for g groups and models specified by modelnames
+        """
+
         self.groups = groups
         self.models = models
-
-
-def mclustBIC(data, g=None, models=None, prior=None, initialization={'noise': None}):
-    """
-    Calculate BIC values for data for g groups models specified  by modelNames.
-
-    :raises ModelError if G or modelNames are incorrectly specified.
-    :modifies g, modelnames
-
-    :param data: data used for fitting the models
-    :param g: list of amount of groups to consider, if none are applied use 1 to 9 groups
-    :param models: list of models that are fitted, if this is None all available models will be fitted
-    :param prior: prior belief of shape direction and scale
-    :param initialization: initialization parameters
-    :return: BICData containing BIC values and return codes for g groups and models specified by modelnames
-    """
-    data = data.astype(float, order='F')
-    if data.ndim == 1:
-        n = len(data)
-        d = 1
-    else:
-        n, d = data.shape
-    # TODO check if previous BIC values are available
-    # TODO include noise
-    if models is None:
-        if d == 1:
-            models = [Model.E, Model.V]
+        data = data.astype(float, order='F')
+        if data.ndim == 1:
+            self.n = len(data)
+            self.d = 1
         else:
-            # TODO fill out modelname selection
-            models = [Model.EII, Model.VII]
-    if g is None:
-        # if no groups are specified generate groups with 1 to 9 elements
-        g = list(range(1, 10))
-    else:
-        # only select unique number of elements
-        g = [int(i) for i in list(set(g))]
-        g.sort()
-    if initialization['noise'] is None:
-        g = [group for group in g if group <= n]
-        if any([group <= 0 for group in g]):
-            raise ModelError("G must be positive")
-    else:
-        if any([group < 0 for group in g]):
-            raise ModelError("G must be non-negative")
-    l = len(g)
-    m = len(models)
-    bic_values = np.full((l, m), None)
-    return_codes = np.full((l, m), None)
+            self.n, self.d = data.shape
 
-    if initialization['noise'] is None:
-        # possibly merge with other groups be using model_to_x(model, g)
-        if g[0] == 1:
-            for modelIndex, model in enumerate(models):
-                print(models)
-                if bic_values[0, modelIndex] is None:
-                    mod = model_to_mvn(model, data, prior)
-                    ret_code = mod.fit()
-                    return_codes[0, modelIndex] = ret_code
-                    bic_values[0, modelIndex] = bic(mod, equalpro=False)
-        # TODO pre specified hcpairs
-        if d != 1:
-            pass
-            # if (n > d):
-            #     hcPairs = hc(data=data,
-            #                    modelName=mclust.options("hcModelNames")[1])
-            # else:
-            #     hcPairs = hc(data = data, modelName = "EII")
-        else:
-            hcPairs = None
-        #   hcPairs <- hc(data = data, modelName = "E")
-        for groupIndex, group in enumerate(g):
-            if group == 1:
-                continue
-            for modelIndex, model in enumerate(models):
+        self._handle_model_selection()
+        self._handle_group_selection(initialization)
+        # TODO save all models in dict?
+        # TODO store MixtureModel
+        self.fitted_models = defaultdict(lambda: None)
 
-                if bic_values[groupIndex, modelIndex] is not None:
+        if initialization['noise'] is None:
+            # possibly merge with other groups be using model_to_x(model, g)
+            if self.groups[0] == 1:
+                for modelIndex, model in enumerate(self.models):
+                    if self.fitted_models[model, 1] is None:
+                        mod = model_to_mvn(model, data, prior)
+                        mod.fit()
+                        self.fitted_models[model, 1] = mod
+
+            # TODO replace random z with hierarchichal clustering
+            for groupIndex, group in enumerate(self.groups):
+                if group == 1:
                     continue
+                for modelIndex, model in enumerate(self.models):
+                    if self.fitted_models[model, group] is not None:
+                        continue
 
-                # TODO replace random z with hierarchichal clustering
-                z = unmap(qclass(data, group)) if d == 1 else random_z(n, group)
-                if min(np.apply_along_axis(sum, 0, z)) == 0:
-                    warnings.warn("there are missing groups")
+                    z = unmap(qclass(data, group)) if self.d == 1 else random_z(self.n, group)
+                    if min(np.apply_along_axis(sum, 0, z)) == 0:
+                        warnings.warn("there are missing groups")
 
-                # FIXME pass control parameter
-                mod = model_to_me(model, data, prior)
-                ret_code = mod.fit(z)
-                bic_values[groupIndex, modelIndex] = bic(mod, equalpro=False)
-                return_codes[groupIndex, modelIndex] = ret_code
+                    # FIXME pass control parameter
+                    mod = model_to_me(model, data, prior)
+                    mod.fit(z)
+                    self.fitted_models[model, group] = mod
 
-    return BICData(bic_values, return_codes, g, models)
+    def _handle_model_selection(self):
+        if self.models is None:
+            if self.d == 1:
+                self.models = [Model.E, Model.V]
+            else:
+                # TODO fill out modelname selection
+                self.models = [Model.EII, Model.VII]
+
+    def _handle_group_selection(self, initialization):
+        if self.groups is None:
+            # if no groups are specified generate groups with 1 to 9 elements
+            self.groups = list(range(1, 10))
+        else:
+            # only select unique number of elements
+            self.groups = [int(i) for i in list(set(self.groups))]
+            self.groups.sort()
+        if initialization['noise'] is None:
+            self.groups = [group for group in self.groups if group <= self.n]
+            if any([group <= 0 for group in self.groups]):
+                raise ModelError("G must be positive")
+        else:
+            if any([group < 0 for group in self.groups]):
+                raise ModelError("G must be non-negative")
+
+    def get_bic_matrix(self):
+        bic_matrix = np.full((len(self.groups), len(self.models)), None)
+        for group_index, group in enumerate(self.groups):
+            for model_index, model in enumerate(self.models):
+                fitted = self.fitted_models[model, group]
+                if fitted is not None:
+                    bic_matrix[group_index, model_index] = fitted.bic()
+        return bic_matrix
+
+    def get_return_codes_matrix(self):
+        ret_matrix = np.full((len(self.groups), len(self.models)), None)
+        for group_index, group in enumerate(self.groups):
+            for model_index, model in enumerate(self.models):
+                fitted = self.fitted_models[model, group]
+                if fitted is not None:
+                    ret_matrix[group_index, model_index] = fitted.returnCode
+        return ret_matrix
+
+    def pick_best(self):
+        bic_matrix = self.get_bic_matrix()
+        index = np.unravel_index(np.argmax(bic_matrix), bic_matrix.shape)
+        return self.fitted_models[self.models[index[1]], self.groups[index[0]]]
 
 
-def bic(fitted_model, noise=False, equalpro=False):
-    nparams = fitted_model.model.n_mclust_params(fitted_model.d, fitted_model.G, noise, equalpro)
-    return 2 * fitted_model.loglik - nparams * log(fitted_model.n)
-
-
+# TODO find a place for z matrices
 def random_z(n, g):
     z = np.zeros((n, g), float, order='F')
     for i in range(n):
@@ -122,8 +126,3 @@ def random_z(n, g):
             sum -= rand
         z[i, g-1] = sum
     return z
-
-
-
-
-

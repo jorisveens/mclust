@@ -1,6 +1,6 @@
 import unittest
 
-from mclust.BIC import mclustBIC
+from mclust.BIC import BIC
 from mclust.Models import Model
 import numpy as np
 
@@ -11,64 +11,62 @@ class TestMVN(unittest.TestCase):
     diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
 
     def test_BIC_E(self):
-        out = mclustBIC(self.test_data, models=[Model.E])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.test_data, models=[Model.E])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_V(self):
-        out = mclustBIC(self.test_data, models=[Model.V])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.test_data, models=[Model.V])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_1D(self):
-        out = mclustBIC(self.test_data)
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.test_data)
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
-        bestgroup, bestmodel = map(lambda a: a.tolist()[0], np.where(out.BICMatrix == np.nanmax(out.BICMatrix)))
-        print(f"best model: {out.models[bestmodel].name}, {out.groups[bestgroup]},\n \
-              {out.BICMatrix[bestgroup, bestmodel]}")
 
     def test_BIC_X(self):
-        out = mclustBIC(self.test_data, models=[Model.X])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.test_data, models=[Model.X])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_EII(self):
         print(self.test_data_2d)
-        out = mclustBIC(self.test_data_2d, g=[1], models=[Model.EII])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.test_data_2d, groups=[1], models=[Model.EII])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_VVV(self):
-        out = mclustBIC(self.diabetes, models=[Model.VVV])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.diabetes, models=[Model.VVV])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_EEE(self):
-        out = mclustBIC(self.diabetes, models=[Model.EEE])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.diabetes, models=[Model.EEE])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_multi_dim(self):
-        out = mclustBIC(self.diabetes, models=[Model.EEE, Model.VVV])
-        print(out.BICMatrix)
-        print(out.returnCodes)
+        out = BIC(self.diabetes, models=[Model.EEE, Model.VVV])
+        print(out.get_bic_matrix())
+        print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
+        print(out.pick_best())
 
 
 if __name__ == '__main__':
