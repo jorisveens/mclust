@@ -22,7 +22,7 @@ class MVN(MixtureModel):
             self.returnCode = -1
             return -1
         self.returnCode = 0
-        return 0
+        return self.returnCode
 
 
 class MVNX(MVN):

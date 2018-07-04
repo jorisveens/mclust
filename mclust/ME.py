@@ -45,7 +45,8 @@ class ME(MixtureModel):
         if ret != 0:
             return ret
         self.me_fortran(control, vinv)
-        return self._handle_output()
+        self.returnCode = self._handle_output()
+        return self.returnCode
 
     def _handle_input(self, z, control, vinv):
         if control is not None:
