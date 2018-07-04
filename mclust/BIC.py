@@ -68,6 +68,7 @@ def mclustBIC(data, g=None, models=None, prior=None, initialization={'noise': No
         # possibly merge with other groups be using model_to_x(model, g)
         if g[0] == 1:
             for modelIndex, model in enumerate(models):
+                print(models)
                 if bic_values[0, modelIndex] is None:
                     mod = model_to_mvn(model, data, prior)
                     ret_code = mod.fit()

@@ -1,4 +1,5 @@
 from mclust.fortran import mclust
+
 from mclust.Exceptions import *
 from mclust.Models import Model, MixtureModel
 from mclust.Utility import round_sig
@@ -27,17 +28,14 @@ class MVN(MixtureModel):
 class MVNX(MVN):
     def __init__(self, data, prior=None):
         super().__init__(data, prior)
+        if self.data.ndim != 1:
+            raise DimensionError(f"Data must be one dimensional, actual dimension {self.data.ndim}")
         self.model = Model.X
-        self.d = 1
         self.G = 1
         self.pro = 1
 
     def fit(self):
-        if self.data.ndim != 1:
-            raise DimensionError("Data must be one dimensional.")
-
         floatData = self.data.astype(float, order='F')
-        self.n = len(self.data)
 
         if self.prior is None:
             self.mean, sigmasq, self.loglik = mclust.mvn1d(floatData)
@@ -53,13 +51,11 @@ class MVNX(MVN):
 class MVNXII(MVN):
     def __init__(self, data, prior=None):
         super().__init__(data, prior)
+        if self.data.ndim != 2:
+            raise DimensionError(f"MVNXII requires two-dimensional data, actual dimension {self.data.ndim}")
         self.model = Model.XII
 
     def fit(self):
-        if self.data.ndim != 2:
-            raise DimensionError("MVNXII requires two-dimensional data")
-        self.n = len(self.data)
-        self.d = self.data.shape[1]
         self.G = 1
         self.pro = 1
 
@@ -82,13 +78,11 @@ class MVNXII(MVN):
 class MVNXXI(MVN):
     def __init__(self, data, prior=None):
         super().__init__(data, prior)
+        if self.data.ndim != 2:
+            raise DimensionError(f"MVNXXI requires two-dimensional data, actual dimesnion {self.data.ndim}")
         self.model = Model.XXI
 
     def fit(self):
-        if self.data.ndim != 2:
-            raise DimensionError("MVNXXI requires two-dimensional data")
-        self.n = len(self.data)
-        self.d = self.data.shape[1]
         self.G = 1
         self.pro = 1
 
@@ -113,13 +107,11 @@ class MVNXXI(MVN):
 class MVNXXX(MVN):
     def __init__(self, data, prior=None):
         super().__init__(data, prior)
+        if self.data.ndim != 2:
+            raise DimensionError(f"MVNXXX requires two-dimensional data, actual dimension: {self.data.ndim}")
         self.model = Model.XXX
 
     def fit(self):
-        if self.data.ndim != 2:
-            raise DimensionError("MVNXXX requires two-dimensional data")
-        self.n = len(self.data)
-        self.d = self.data.shape[1]
         self.G = 1
         self.pro = 1
 
@@ -140,12 +132,14 @@ class MVNXXX(MVN):
 
 
 def model_to_mvn(model, data, prior=None):
-    return {
-        Model.X: MVNX(data, prior),
-        Model.E: MVNX(data, prior),
-        Model.V: MVNX(data, prior),
-        Model.EII: MVNXII(data, prior),
-        Model.VVV: MVNXXX(data, prior),
-        Model.EEE: MVNXXX(data, prior)
+    print(f"model: {model}, dim: {data.ndim}")
+    mod = {
+        Model.X: MVNX,
+        Model.E: MVNX,
+        Model.V: MVNX,
+        Model.EII: MVNXII,
+        Model.VVV: MVNXXX,
+        Model.EEE: MVNXXX
     }.get(model)
+    return mod(data, prior)
 

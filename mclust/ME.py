@@ -52,7 +52,6 @@ class ME(MixtureModel):
         if control is not None:
             self._set_control(control)
 
-        self.n = len(self.data)
         if z.shape[0] != self.n:
             raise ModelError("row dimension of z should be equal length of the data")
 
@@ -101,13 +100,9 @@ class ME(MixtureModel):
 class ME1Dimensional(ME):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
-        self.sigmasq = None
-
-    def _handle_input(self, z, control, vinv):
         if self.data.ndim != 1:
             raise ModelError("data must be 1 dimensional")
-        self.d = 1
-        return super()._handle_input(z, control, vinv)
+        self.sigmasq = None
 
     def _handle_output(self):
         if np.any(self.sigmasq <= max(self.control.eps, 0)):
@@ -181,15 +176,12 @@ class MEV(ME1Dimensional):
 class MEX(ME):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
+        if self.data.ndim != 1:
+            raise ModelError("data must be 1 dimensional")
         self.model = Model.X
 
     def fit(self, z, control=None, vinv=None):
-        if self.data.ndim != 1:
-            raise ModelError("data must be 1 dimensional")
-        self.d = 1
-        n = len(self.data)
-        self.n = n
-        if z.shape[0] != n:
+        if z.shape[0] != self.n:
             raise ModelError("row dimension of z should be equal length of the data")
 
         self.G = z.shape[1]
@@ -206,11 +198,10 @@ class MEX(ME):
 
 
 class MEMultiDimensional(ME):
-    def _handle_input(self, z, control, vinv):
+    def __init__(self, data, prior=None, control=EMControl()):
+        super().__init__(data, prior, control)
         if self.data.ndim != 2:
             raise ModelError("data must be 2 dimensional")
-        self.d = self.data.shape[1]
-        return super()._handle_input(z, control, vinv)
 
 
 class MEEEE(MEMultiDimensional):
@@ -286,10 +277,11 @@ class MEVVV(MEMultiDimensional):
 
 
 def model_to_me(model, data, prior=None, control=EMControl()):
-    return {
-        Model.E: MEE(data, prior, control),
-        Model.V: MEV(data, prior, control),
-        Model.X: MEX(data, prior, control),
-        Model.VVV: MEVVV(data, prior, control),
-        model.EEE: MEEEE(data, prior, control)
+    mod = {
+        Model.E: MEE,
+        Model.V: MEV,
+        Model.X: MEX,
+        Model.VVV: MEVVV,
+        model.EEE: MEEEE
     }.get(model)
+    return mod(data, prior, control)

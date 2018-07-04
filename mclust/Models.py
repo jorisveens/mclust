@@ -70,8 +70,6 @@ class MixtureModel:
     def __init__(self, data, prior=None):
         self.model = None
         self.prior = None
-        self.n = None
-        self.d = None
         self.G = None
         self.mean = None
         self.pro = None
@@ -83,6 +81,11 @@ class MixtureModel:
 
         self.data = data
         self.prior = prior
+        self.n = len(data)
+        if data.ndim == 1:
+            self.d = 1
+        else:
+            self.d = data.shape[1]
 
     def __str__(self):
         return f"modelname: {self.model}\n" \
