@@ -9,7 +9,7 @@ from mclust.Utility import qclass, mclust_unmap
 from mclust.Models import Model
 
 
-class BIC:
+class MclustBIC:
     def __init__(self, data, groups=None, models=None, prior=None, initialization={'noise': None}):
         """
         Calculate BIC values for data for g groups models specified  by modelNames.

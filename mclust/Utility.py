@@ -50,7 +50,6 @@ def mclust_unmap(classification, groups=None, noise=None):
     else:
         if any([not (ui in groups) for ui in u]):
             raise ModelError("groups incompatible with classification")
-        # UNUSED? miss <- match( groups, u, nomatch = 0) == 0
 
     if noise:
         noiz = [noisi in groups for noisi in noise]
@@ -58,14 +57,7 @@ def mclust_unmap(classification, groups=None, noise=None):
         if any(noiz):
             raise ModelError("noise incompatible with classification")
         groups = [g for g in groups if g != noise] + [g for g in groups if g == noise]
-        noise = int(noise)
 
-    # as.numeric applied to a factor is meaningless
-    # groups <- as.numeric(factor(cgroups, levels = unique(cgroups)))
-    # classification <- as.numeric(factor(as.character(classification), levels = unique(cgroups)))
-
-    # FIXME as far as I can see this does nothing
-    # len(groups) - len(noise) = {len(groups) if noise is False, len(groups) - 1 + 1 if noise is True}
     k = len(groups)
 
     z = np.zeros((n, k), float, order='F')

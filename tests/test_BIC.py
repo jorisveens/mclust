@@ -1,6 +1,6 @@
 import unittest
 
-from mclust.BIC import BIC
+from mclust.MclustBIC import MclustBIC
 from mclust.Models import Model
 import numpy as np
 
@@ -11,28 +11,28 @@ class TestMVN(unittest.TestCase):
     diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
 
     def test_BIC_E(self):
-        out = BIC(self.test_data, models=[Model.E])
+        out = MclustBIC(self.test_data, models=[Model.E])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_V(self):
-        out = BIC(self.test_data, models=[Model.V])
+        out = MclustBIC(self.test_data, models=[Model.V])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_1D(self):
-        out = BIC(self.test_data)
+        out = MclustBIC(self.test_data)
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_X(self):
-        out = BIC(self.test_data, models=[Model.X])
+        out = MclustBIC(self.test_data, models=[Model.X])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
@@ -40,28 +40,28 @@ class TestMVN(unittest.TestCase):
 
     def test_BIC_EII(self):
         print(self.test_data_2d)
-        out = BIC(self.test_data_2d, groups=[1], models=[Model.EII])
+        out = MclustBIC(self.test_data_2d, groups=[1], models=[Model.EII])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_VVV(self):
-        out = BIC(self.diabetes, models=[Model.VVV])
+        out = MclustBIC(self.diabetes, models=[Model.VVV])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_BIC_EEE(self):
-        out = BIC(self.diabetes, models=[Model.EEE])
+        out = MclustBIC(self.diabetes, models=[Model.EEE])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
 
     def test_multi_dim(self):
-        out = BIC(self.diabetes, models=[Model.EEE, Model.VVV])
+        out = MclustBIC(self.diabetes, models=[Model.EEE, Model.VVV])
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)

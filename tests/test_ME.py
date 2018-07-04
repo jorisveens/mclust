@@ -3,7 +3,7 @@ import numpy as np
 
 from mclust.Utility import qclass, unmap
 from mclust.ME import *
-from mclust.BIC import random_z
+from mclust.MclustBIC import random_z
 
 
 class MyTestCase(unittest.TestCase):
