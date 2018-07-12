@@ -52,11 +52,11 @@ python module mclust ! in
             integer, optional,check(shape(r,0)==lr),depend(r) :: lr=shape(r,0)
         end subroutine mclrup
         subroutine mcltrw(x,n,p,u,ss) ! in :mclust:mclust.f
-            double precision dimension(n,*) :: x
+            double precision dimension(n,*), intent(in) :: x
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
-            integer :: p
-            double precision dimension(*) :: u
-            double precision :: ss
+            integer, intent(in) :: p
+            double precision dimension(*), intent(in) :: u
+            double precision, intent(inout) :: ss
         end subroutine mcltrw
         subroutine mclvol(x,n,p,u,v,w,work,lwork,iwork,liwork,info) ! in :mclust:mclust.f
             double precision dimension(n,*) :: x
@@ -434,15 +434,15 @@ python module mclust ! in
             double precision dimension(n,*),depend(n) :: z
         end subroutine eseii
         subroutine hceii(x,n,p,ic,ng,ns,v,nd,d) ! in :mclust:mclust.f
-            double precision dimension(n,*) :: x
+            double precision dimension(n,*), intent(in) :: x
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
-            integer :: p
-            integer dimension(n),depend(n) :: ic
-            integer :: ng
-            integer :: ns
-            double precision dimension(*) :: v
-            integer :: nd
-            double precision dimension(*) :: d
+            integer, intent(in) :: p
+            integer dimension(n),depend(n), intent(in) :: ic
+            integer, intent(in) :: ng
+            integer, intent(in) :: ns
+            double precision dimension(*), intent(in) :: v
+            integer, intent(in) :: nd
+            double precision dimension(*), intent(inout) :: d
         end subroutine hceii
         subroutine meeii(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,mu,sigsq,pro) ! in :mclust:mclust.f
             logical :: eqpro
@@ -1011,20 +1011,20 @@ python module mclust ! in
             double precision dimension(n,*),depend(n) :: z
         end subroutine esvvv
         subroutine hcvvv(x,n,p,ic,ng,ns,alpha,beta,v,u,s,r,nd,d) ! in :mclust:mclust.f
-            double precision dimension(n,*) :: x
+            double precision dimension(n,*), intent(inout) :: x
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(u,0)==p),depend(u) :: p=shape(u,0)
-            integer dimension(n),depend(n) :: ic
-            integer :: ng
-            integer :: ns
-            double precision :: alpha
-            double precision :: beta
-            double precision dimension(*) :: v
-            double precision dimension(p,*) :: u
-            double precision dimension(p,*),depend(p) :: s
-            double precision dimension(p,*),depend(p) :: r
-            integer :: nd
-            double precision dimension(*) :: d
+            integer dimension(n),depend(n), intent(in) :: ic
+            integer, intent(in) :: ng
+            integer, intent(in) :: ns
+            double precision, intent(in) :: alpha
+            double precision, intent(in) :: beta
+            double precision dimension(*), intent(inout) :: v
+            double precision dimension(p,*), intent(inout) :: u
+            double precision dimension(p,*),depend(p), intent(inout) :: s
+            double precision dimension(p,*),depend(p), intent(inout) :: r
+            integer, intent(in) :: nd
+            double precision dimension(*), intent(inout) :: d
             double precision :: beta0
             double precision :: alpha0
             double precision :: ablog
