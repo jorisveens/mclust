@@ -35,23 +35,17 @@ class TestHc(TestCase):
         result = traceW(self.test_data_2d)
         self.assertEqual(traceW(self.test_data_2d), 450)
 
-    def test_hc(self):
-        result = hc(self.test_data_2d, "ds")
-        print(result)
-
     def test_hclass(self):
-        z = hc(self.test_data_2d, "vvv")
-        hcpairs = hcVVV(z)
-        print(hclass(hcpairs, range(1, 9)))
+        model = HCVVV(self.test_data_2d)
+        model.fit()
+        print(model.get_class_matrix(range(1, 9)))
 
     def test_hcvvv(self):
-        z = hc(self.test_data_2d, "vvv")
-        result = hcVVV(z)
-        print("hcvvv")
-        print(result)
+        model = HCVVV(self.test_data_2d)
+        model.fit()
+        print(model.pairs)
 
     def test_hceii(self):
-        z = hc(self.test_data_2d, "eii")
-        result = hcEII(z)
-        print("hceii")
-        print(result)
+        model = HCEII(self.test_data_2d)
+        model.fit()
+        print(model.pairs)

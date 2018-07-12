@@ -1,6 +1,7 @@
 import numpy as np
 from math import sqrt, floor, log10
 from mclust.Exceptions import ModelError
+from mclust.fortran.mclust import mcltrw
 
 
 def qclass(x, k):
@@ -69,3 +70,37 @@ def mclust_unmap(classification, groups=None, noise=None):
 
 def round_sig(x, sig=3):
     return round(x, sig-int(floor(log10(abs(x))))-1)
+
+
+def traceW(x):
+    n, p = x.shape
+    p = np.array(p, int, order='F')
+    u = np.zeros(p, float, order='F')
+    ss = np.array(0, float, order='F')
+
+    mcltrw(x, p, u, ss, n=n)
+    return ss
+
+
+def partconv(x, consec=True):
+    n = len(x)
+    y = np.zeros(n, int, order='F')
+    _, idx = np.unique(x, return_index=True)
+    u = x[np.sort(idx)]
+    if consec:
+        for i in range(len(u)):
+            y[x == u[i]] = i
+    else:
+        for i in u:
+            l = x == i
+            y[l] = np.arange(9)[l][0]
+    return y + 1
+
+
+def scale(data, center=True, rescale=True):
+    data_copy = data.copy(order="F")
+    if center:
+        data_copy -= data_copy.mean(axis=0)[np.newaxis, :]
+    if rescale:
+        data_copy /= data_copy.std(axis=0, ddof=1)[np.newaxis, :]
+    return data_copy
