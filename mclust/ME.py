@@ -403,4 +403,3 @@ def model_to_me(model, data, prior=None, control=EMControl()):
         model.EEE: MEEEE
     }.get(model)
     return mod(data, prior, control)
-

@@ -5,8 +5,6 @@ from math import log, sqrt, pow
 from mclust.Exceptions import ModelError
 from mclust.Utility import mclust_map
 
-# TODO How to structre mstep, estep, mvn and me classes, oe for each model
-# or each model is a seperate class with functions for each
 
 class Model(Enum):
     E = 'E'

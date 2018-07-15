@@ -40,7 +40,6 @@ class METestCase(unittest.TestCase):
         print(model)
 
 
-# TODO find a place for z matrices
 def random_z(n, g):
     z = np.zeros((n, g), float, order='F')
     for i in range(n):
