@@ -70,7 +70,7 @@ class Model(Enum):
 
 # POSSIBLY add z to all models (only one for MVN)
 class MixtureModel:
-    def __init__(self, data, prior=None):
+    def __init__(self, data, z=None, prior=None):
         self.model = None
         self.prior = None
         self.G = None
@@ -81,7 +81,7 @@ class MixtureModel:
 
         self.loglik = None
         self.returnCode = None
-        self.z = None
+        self.z = z
 
         self.data = data
         self.prior = prior

@@ -30,8 +30,8 @@ class MVN(MixtureModel):
 
 
 class MVNX(MVN):
-    def __init__(self, data, prior=None):
-        super().__init__(data, prior)
+    def __init__(self, data, z=None, prior=None):
+        super().__init__(data, z, prior)
         if self.data.ndim != 1:
             raise DimensionError(f"Data must be one dimensional, actual dimension {self.data.ndim}")
         self.model = Model.X
@@ -54,8 +54,8 @@ class MVNX(MVN):
 
 
 class MVNXII(MVN):
-    def __init__(self, data, prior=None):
-        super().__init__(data, prior)
+    def __init__(self, data, z=None, prior=None):
+        super().__init__(data, z, prior)
         if self.data.ndim != 2:
             raise DimensionError(f"MVNXII requires two-dimensional data, actual dimension {self.data.ndim}")
         self.model = Model.XII
@@ -82,8 +82,8 @@ class MVNXII(MVN):
 
 
 class MVNXXI(MVN):
-    def __init__(self, data, prior=None):
-        super().__init__(data, prior)
+    def __init__(self, data, z=None, prior=None):
+        super().__init__(data, z, prior)
         if self.data.ndim != 2:
             raise DimensionError(f"MVNXXI requires two-dimensional data, actual dimesnion {self.data.ndim}")
         self.model = Model.XXI
@@ -112,8 +112,8 @@ class MVNXXI(MVN):
 
 
 class MVNXXX(MVN):
-    def __init__(self, data, prior=None):
-        super().__init__(data, prior)
+    def __init__(self, data, z=None, prior=None):
+        super().__init__(data, z, prior)
         if self.data.ndim != 2:
             raise DimensionError(f"MVNXXX requires two-dimensional data, actual dimension: {self.data.ndim}")
         self.model = Model.XXX
@@ -148,5 +148,5 @@ def model_to_mvn(model, data, prior=None):
         Model.VVV: MVNXXX,
         Model.EEE: MVNXXX
     }.get(model)
-    return mod(data, prior)
+    return mod(data, prior=prior)
 

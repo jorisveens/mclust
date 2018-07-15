@@ -15,28 +15,28 @@ class METestCase(unittest.TestCase):
     def test_MEE(self):
         z = mclust_unmap(qclass(self.testData, 2))
         print(self.testData.shape)
-        me = MEE(self.testData)
-        me.fit(z)
+        me = MEE(self.testData, z)
+        me.fit()
         print(me.variance.get_covariance())
         print(me)
 
     def test_MEV(self):
         z = mclust_unmap(qclass(self.testData, 2))
-        me = MEV(self.testData)
-        me.fit(z)
+        me = MEV(self.testData, z)
+        me.fit()
         print(me.variance.get_covariance())
         print(me)
 
     def test_MEVVV(self):
         z = random_z(self.diabetes.shape[0], 3)
-        model = MEVVV(self.diabetes)
-        print(model.fit(z))
+        model = MEVVV(self.diabetes, z)
+        print(model.fit())
         print(model)
 
     def test_MEEEE(self):
         z = random_z(self.diabetes.shape[0], 7)
-        model = MEEEE(self.diabetes)
-        model.fit(z)
+        model = MEEEE(self.diabetes, z)
+        model.fit()
         print(model)
 
 
@@ -58,8 +58,8 @@ class MStepTest(unittest.TestCase):
 
     def test_mstepE(self):
         z = mclust_unmap(qclass(self.testData, 3))
-        model = MEE(self.testData)
-        model.fit(z)
+        model = MEE(self.testData, z)
+        model.fit()
         print(model.z)
         print(model)
         model.m_step()
@@ -68,8 +68,8 @@ class MStepTest(unittest.TestCase):
 
     def test_mstepV(self):
         z = mclust_unmap(qclass(self.testData, 3))
-        model = MEV(self.testData)
-        model.fit(z)
+        model = MEV(self.testData, z)
+        model.fit()
         print(model.z)
         print(model)
         model.m_step()
@@ -80,8 +80,8 @@ class MStepTest(unittest.TestCase):
         hc = HCVVV(self.diabetes)
         hc.fit()
         z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEEE(self.diabetes)
-        model.fit(z)
+        model = MEEEE(self.diabetes, z)
+        model.fit()
         print(model.z)
         print(model)
         model.m_step()
@@ -92,8 +92,8 @@ class MStepTest(unittest.TestCase):
         hc = HCVVV(self.diabetes)
         hc.fit()
         z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVVV(self.diabetes)
-        model.fit(z)
+        model = MEVVV(self.diabetes, z)
+        model.fit()
         print(model.z)
         print(model)
         model.m_step()

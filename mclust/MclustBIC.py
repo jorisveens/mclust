@@ -69,8 +69,8 @@ class MclustBIC:
                         warnings.warn("there are missing groups")
 
                     # FIXME pass control parameter
-                    mod = model_to_me(model, data, prior)
-                    mod.fit(z)
+                    mod = model_to_me(model, z, data, prior)
+                    mod.fit()
                     self.fitted_models[model, group] = mod
 
     def _handle_model_selection(self):
