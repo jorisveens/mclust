@@ -31,6 +31,7 @@ class TestMVN(unittest.TestCase):
         print(out.models)
         print(out.groups)
         model = out.pick_best_model()
+        print(model)
         print(model.classify())
 
     def test_BIC_X(self):

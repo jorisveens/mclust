@@ -11,6 +11,7 @@ from mclust.MVN import MVNX
 from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposition
 
 # TODO implement vinv and prior
+# CONTINUE implement other models
 
 
 class ME(MixtureModel):

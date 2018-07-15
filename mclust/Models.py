@@ -1,9 +1,7 @@
-import numpy as np
 from enum import Enum
-from math import log, sqrt, pow
+from math import log
 
-from mclust.Exceptions import ModelError
-from mclust.Utility import mclust_map
+from mclust.Exceptions import ModelError, AbstractMethodError
 
 
 class Model(Enum):
@@ -68,7 +66,6 @@ class Model(Enum):
         return nparams
 
 
-# POSSIBLY add z to all models (only one for MVN)
 class MixtureModel:
     def __init__(self, data, z=None, prior=None):
         self.model = None
@@ -95,6 +92,9 @@ class MixtureModel:
         nparams = self.model.n_mclust_params(self.d, self.G, noise, equalpro)
         return 2 * self.loglik - nparams * log(self.n)
 
+    def fit(self):
+        raise AbstractMethodError()
+
     def classify(self):
         if self.returnCode is None:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
@@ -112,3 +112,4 @@ class MixtureModel:
                f"loglik: {self.loglik}\n" \
                f"returnCode: {self.returnCode}\n" \
                f"prior: {self.prior}\n"
+
