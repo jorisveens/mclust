@@ -102,14 +102,6 @@ class MixtureModel:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         elif self.returnCode != 0:
             raise ModelError("Model not fitted correctly, check warnings and returnCode for more information.")
-        if self.G == 1:
-            return np.repeat(1, self.n)
-
-        if pow((np.sum(self.pro) - np.sum(np.mean(self.z, axis=0))), 2) > sqrt(np.finfo(float).eps):
-            print("pro and z mean condition thingy holds")
-            # CONTINUE mstep
-
-        return mclust_map(self.z)
 
     def __str__(self):
         return f"modelname: {self.model}\n" \

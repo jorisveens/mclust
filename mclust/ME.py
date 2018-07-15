@@ -1,10 +1,11 @@
 import numpy as np
 import warnings
+from math import sqrt
 
-from mclust.Exceptions import ModelError
+from mclust.Exceptions import ModelError, AbstractMethodError
 from mclust.Control import EMControl
 from mclust.Models import Model, MixtureModel
-from mclust.Utility import round_sig
+from mclust.Utility import round_sig, mclust_map
 from mclust.fortran import mclust
 from mclust.MVN import MVNX
 from mclust.variance import *
@@ -24,6 +25,7 @@ class ME(MixtureModel):
         self.loglik = np.array(control.eps, order='F')
         self.control = control
 
+    # POSSIBLY move z to __init__
     def fit(self, z, control=None, vinv=None):
         """
         Runs ME algorithm on data starting with probabilities defined in z
@@ -44,9 +46,15 @@ class ME(MixtureModel):
         ret = self._handle_input(z, control, vinv)
         if ret != 0:
             return ret
-        self.me_fortran(control, vinv)
+        self._me_fortran(control, vinv)
         self.returnCode = self._handle_output()
         return self.returnCode
+
+    def m_step(self):
+        raise AbstractMethodError()
+
+    def e_step(self):
+        raise AbstractMethodError()
 
     def _handle_input(self, z, control, vinv):
         if control is not None:
@@ -76,8 +84,11 @@ class ME(MixtureModel):
 
         return 0
 
-    def me_fortran(self, control, vinv):
-        pass
+    def _me_fortran(self, control, vinv):
+        raise AbstractMethodError()
+
+    def _m_step_fortran(self):
+        raise AbstractMethodError()
 
     def _handle_output(self):
         if self.loglik > round_sig(np.finfo(float).max, 6) or self.loglik == float('nan'):
@@ -97,6 +108,14 @@ class ME(MixtureModel):
             return 1
         return 0
 
+    def classify(self):
+        super().classify()
+        if pow((np.sum(self.pro) - np.sum(np.mean(self.z, axis=0))), 2) > sqrt(np.finfo(float).eps):
+            print("pro and z mean condition thingy holds")
+            self.m_step()
+
+        return mclust_map(self.z)
+
 
 class ME1Dimensional(ME):
     def __init__(self, data, prior=None, control=EMControl()):
@@ -112,13 +131,29 @@ class ME1Dimensional(ME):
             return -1
         return super()._handle_output()
 
+    def m_step(self):
+        ret = self._handle_input(self.z, self.control, self.vinv)
+        if ret != 0:
+            return ret
+
+        self._m_step_fortran()
+
+        if self.sigmasq > round_sig(np.finfo(float).max, 6):
+            warnings.warn("cannot compute M-step")
+            self.pro = self.mean = self.sigmasq = float("nan")
+            self.returnCode = -1
+        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+        self.mean = np.array([self.mean]).transpose()
+        self.returnCode = 0
+        return 0
+
 
 class MEE(ME1Dimensional):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
         self.model = Model.E
 
-    def me_fortran(self, control, vinv):
+    def _me_fortran(self, control, vinv):
         self.mean = np.zeros(self.G, float, order='F')
         self.sigmasq = np.array(1, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
@@ -141,13 +176,27 @@ class MEE(ME1Dimensional):
         self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
         self.mean = np.array([self.mean]).transpose()
 
+    def _m_step_fortran(self):
+        self.mean = np.zeros(self.G, float, order='F')
+        self.sigmasq = np.array(1, float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        if self.prior is None:
+            mclust.ms1e(self.data,
+                        self.z,
+                        self.G,
+                        self.mean,
+                        self.sigmasq,
+                        self.pro)
+        else:
+            raise NotImplementedError("prior not yet supported")
+
 
 class MEV(ME1Dimensional):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
         self.model = Model.V
 
-    def me_fortran(self, control, vinv):
+    def _me_fortran(self, control, vinv):
         self.mean = np.zeros(self.G, float, order='F')
         self.sigmasq = np.zeros(self.G, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
@@ -171,7 +220,22 @@ class MEV(ME1Dimensional):
         self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
         self.mean = np.array([self.mean]).transpose()
 
+    def _m_step_fortran(self):
+        self.mean = np.zeros(self.G, float, order='F')
+        self.sigmasq = np.array(1, float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        if self.prior is None:
+            mclust.ms1v(self.data,
+                        self.z,
+                        self.G,
+                        self.mean,
+                        self.sigmasq,
+                        self.pro)
+        else:
+            raise NotImplementedError("prior not yet supported")
 
+
+# TODO delete or implemnet mstep/estep?
 class MEX(ME):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
@@ -201,13 +265,28 @@ class MEMultiDimensional(ME):
         if self.data.ndim != 2:
             raise ModelError("data must be 2 dimensional")
 
+    def m_step(self):
+        ret = self._handle_input(self.z, self.control, self.vinv)
+        if ret != 0:
+            return ret
+
+        self._m_step_fortran()
+
+        if np.any(self.mean > round_sig(np.finfo(float).max, 6)):
+            warnings.warn("cannot compute M-step")
+            self.mean = self.variance = self.pro = float('nan')
+            self.returnCode = -1
+            return -1
+
+        self.returnCode = 0
+
 
 class MEEEE(MEMultiDimensional):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
         self.model = Model.EEE
 
-    def me_fortran(self,  control, vinv):
+    def _me_fortran(self, control, vinv):
         self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
         cholsigma = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
@@ -233,13 +312,33 @@ class MEEEE(MEMultiDimensional):
         self.mean = self.mean.transpose()
         self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
 
+    def _m_step_fortran(self):
+        w = np.zeros(self.d, float, order='F')
+        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
+        cholsigma = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        if self.prior is None:
+            mclust.mseee(self.data,
+                         self.z,
+                         self.G,
+                         w,
+                         self.mean,
+                         cholsigma,
+                         self.pro
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
+
 
 class MEVVV(MEMultiDimensional):
     def __init__(self, data, prior=None, control=EMControl()):
         super().__init__(data, prior, control)
         self.model = Model.VVV
 
-    def me_fortran(self, control, vinv):
+    def _me_fortran(self, control, vinv):
         self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
         cholsigma = np.zeros(self.d * self.d * self.G, float).reshape(self.d, self.d, self.G, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
@@ -268,7 +367,30 @@ class MEVVV(MEMultiDimensional):
         # to the order python expects
         self.mean = self.mean.transpose()
         cholsigma = cholsigma.transpose((2, 0, 1))
+        self.variance = VarianceCholesky(self.d, self.G, cholsigma)
 
+    def _m_step_fortran(self):
+        w = np.zeros(self.d, float, order='F')
+        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
+        cholsigma = np.zeros(self.d * self.d * self.G, float).reshape(self.d, self.d, self.G, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        s = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
+
+        if self.prior is None:
+            mclust.msvvv(self.data,
+                         self.z,
+                         self.G,
+                         w,
+                         self.mean,
+                         cholsigma,
+                         self.pro,
+                         s
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        cholsigma = cholsigma.transpose((2, 0, 1))
         self.variance = VarianceCholesky(self.d, self.G, cholsigma)
 
 

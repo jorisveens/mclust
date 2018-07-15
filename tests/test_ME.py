@@ -2,10 +2,11 @@ import unittest
 import numpy as np
 
 from mclust.Utility import qclass, mclust_unmap
+from mclust.hc import HCVVV
 from mclust.ME import *
 
 
-class MyTestCase(unittest.TestCase):
+class METestCase(unittest.TestCase):
     testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
     test_data = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)], float, order='F')
     # TODO pacakge test data
@@ -50,6 +51,55 @@ def random_z(n, g):
             sum -= rand
         z[i, g-1] = sum
     return z
+
+
+class MStepTest(unittest.TestCase):
+    testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
+    diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
+
+    def test_mstepE(self):
+        z = mclust_unmap(qclass(self.testData, 3))
+        model = MEE(self.testData)
+        model.fit(z)
+        print(model.z)
+        print(model)
+        model.m_step()
+        print(model.z)
+        print(model)
+
+    def test_mstepV(self):
+        z = mclust_unmap(qclass(self.testData, 3))
+        model = MEV(self.testData)
+        model.fit(z)
+        print(model.z)
+        print(model)
+        model.m_step()
+        print(model.z)
+        print(model)
+
+    def test_mstepEEE(self):
+        hc = HCVVV(self.diabetes)
+        hc.fit()
+        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
+        model = MEEEE(self.diabetes)
+        model.fit(z)
+        print(model.z)
+        print(model)
+        model.m_step()
+        print(model.z)
+        print(model)
+
+    def test_mstepVVV(self):
+        hc = HCVVV(self.diabetes)
+        hc.fit()
+        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
+        model = MEVVV(self.diabetes)
+        model.fit(z)
+        print(model.z)
+        print(model)
+        model.m_step()
+        print(model.z)
+        print(model)
 
 
 if __name__ == '__main__':

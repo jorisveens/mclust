@@ -24,6 +24,10 @@ class MVN(MixtureModel):
         self.returnCode = 0
         return self.returnCode
 
+    def classify(self):
+        super().classify()
+        return np.zeros(self.n)
+
 
 class MVNX(MVN):
     def __init__(self, data, prior=None):

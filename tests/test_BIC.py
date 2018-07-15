@@ -30,6 +30,8 @@ class TestMVN(unittest.TestCase):
         print(out.get_return_codes_matrix())
         print(out.models)
         print(out.groups)
+        model = out.pick_best_model()
+        print(model.classify())
 
     def test_BIC_X(self):
         out = MclustBIC(self.test_data, models=[Model.X])
