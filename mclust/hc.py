@@ -1,11 +1,8 @@
 import numpy as np
 import warnings
-from mclust.Exceptions import ModelError
+from mclust.Exceptions import ModelError, AbstractMethodError
 from mclust.fortran.mclust import hcvvv, hceii
 from mclust.Utility import traceW, partconv, scale
-
-# CONTINUE refactor hc methods
-# TODO check small differences with hcvvv output
 
 
 class HC:
@@ -55,7 +52,7 @@ class HC:
             raise ModelError("initial number of clusters is not greater than minclus")
 
     def hc_fortran(self, z):
-        pass
+        raise AbstractMethodError()
 
     def get_class_matrix(self, g):
         n = len(self.partition)
@@ -84,6 +81,7 @@ class HC:
             if select[m] == li + 1:
                 cl[:, m] = self.partition
                 m = m + 1
+
         return np.apply_along_axis(partconv, 0, cl[:, range(l-1, -1, -1)])
 
 
@@ -110,9 +108,8 @@ class HCVVV(HC):
               s,
               r,
               ld,
-              d,
+              d
               )
-        print(data_stacked)
         self.pairs = data_stacked[0:self.m, 0:2].transpose()
 
 

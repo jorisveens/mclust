@@ -56,7 +56,7 @@ python module mclust ! in
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, intent(in) :: p
             double precision dimension(*), intent(in) :: u
-            double precision, intent(inout) :: ss
+            double precision, intent(out) :: ss
         end subroutine mcltrw
         subroutine mclvol(x,n,p,u,v,w,work,lwork,iwork,liwork,info) ! in :mclust:mclust.f
             double precision dimension(n,*) :: x

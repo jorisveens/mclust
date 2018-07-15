@@ -7,6 +7,7 @@ from mclust.MVN import model_to_mvn
 from mclust.ME import model_to_me
 from mclust.Utility import qclass, mclust_unmap
 from mclust.Models import Model
+from mclust.hc import HCEII, HCVVV
 
 
 class MclustBIC:
@@ -47,7 +48,15 @@ class MclustBIC:
                         mod.fit()
                         self.fitted_models[model, 1] = mod
 
-            # TODO replace random z with hierarchichal clustering
+            # Use Hierarchical clustering to obtain starting classes
+            hc_matrix = None
+            if self.d != 1:
+                if self.n > self.d:
+                    hc = HCVVV(data)
+                else:
+                    hc = HCEII(data)
+                hc.fit()
+                hc_matrix = hc.get_class_matrix(self.groups)
             for groupIndex, group in enumerate(self.groups):
                 if group == 1:
                     continue
@@ -55,7 +64,7 @@ class MclustBIC:
                     if self.fitted_models[model, group] is not None:
                         continue
 
-                    z = mclust_unmap(qclass(data, group)) if self.d == 1 else random_z(self.n, group)
+                    z = mclust_unmap(qclass(data, group)) if self.d == 1 else mclust_unmap(hc_matrix[:, groupIndex])
                     if min(np.apply_along_axis(sum, 0, z)) == 0:
                         warnings.warn("there are missing groups")
 
@@ -110,16 +119,3 @@ class MclustBIC:
         bic_matrix = self.get_bic_matrix()
         index = np.unravel_index(np.argmax(bic_matrix), bic_matrix.shape)
         return self.fitted_models[self.models[index[1]], self.groups[index[0]]]
-
-
-# TODO find a place for z matrices
-def random_z(n, g):
-    z = np.zeros((n, g), float, order='F')
-    for i in range(n):
-        sum = 1.0
-        for j in range(g-1):
-            rand = np.random.uniform(high=sum)
-            z[i, j] = rand
-            sum -= rand
-        z[i, g-1] = sum
-    return z

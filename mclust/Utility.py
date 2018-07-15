@@ -76,10 +76,7 @@ def traceW(x):
     n, p = x.shape
     p = np.array(p, int, order='F')
     u = np.zeros(p, float, order='F')
-    ss = np.array(0, float, order='F')
-
-    mcltrw(x, p, u, ss, n=n)
-    return ss
+    return mcltrw(x, p, u, n=n)
 
 
 def partconv(x, consec=True):

@@ -2,10 +2,12 @@ from unittest import TestCase
 import numpy as np
 
 from mclust.hc import *
+from mclust.Utility import mclust_unmap
 
 
 class TestHc(TestCase):
     test_data_2d = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)], float, order='F')
+    diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
     test_data_sclaed = np.array([[- 1.080123,  - 1.4639385, - 0.5400617],
                                 [1.080123, 0.1126107, - 1.6201852],
                                 [0.000000, - 1.0134959, - 0.5400617],
@@ -49,3 +51,11 @@ class TestHc(TestCase):
         model = HCEII(self.test_data_2d)
         model.fit()
         print(model.pairs)
+
+    def test_diabetes(self):
+        model = HCVVV(self.diabetes.astype(float, order='F'))
+        model.fit()
+        print(model.pairs)
+        print(model.partition)
+        hc_matrix = model.get_class_matrix(range(1, 9))
+        print(mclust_unmap(hc_matrix[:, 2]))

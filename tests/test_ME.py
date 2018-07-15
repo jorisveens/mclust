@@ -1,9 +1,8 @@
 import unittest
 import numpy as np
 
-from mclust.Utility import qclass, unmap
+from mclust.Utility import qclass, mclust_unmap
 from mclust.ME import *
-from mclust.MclustBIC import random_z
 
 
 class MyTestCase(unittest.TestCase):
@@ -13,7 +12,7 @@ class MyTestCase(unittest.TestCase):
     diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
 
     def test_MEE(self):
-        z = unmap(qclass(self.testData, 2))
+        z = mclust_unmap(qclass(self.testData, 2))
         print(self.testData.shape)
         me = MEE(self.testData)
         me.fit(z)
@@ -21,7 +20,7 @@ class MyTestCase(unittest.TestCase):
         print(me)
 
     def test_MEV(self):
-        z = unmap(qclass(self.testData, 2))
+        z = mclust_unmap(qclass(self.testData, 2))
         me = MEV(self.testData)
         me.fit(z)
         print(me.variance.get_covariance())
@@ -38,6 +37,19 @@ class MyTestCase(unittest.TestCase):
         model = MEEEE(self.diabetes)
         model.fit(z)
         print(model)
+
+
+# TODO find a place for z matrices
+def random_z(n, g):
+    z = np.zeros((n, g), float, order='F')
+    for i in range(n):
+        sum = 1.0
+        for j in range(g-1):
+            rand = np.random.uniform(high=sum)
+            z[i, j] = rand
+            sum -= rand
+        z[i, g-1] = sum
+    return z
 
 
 if __name__ == '__main__':
