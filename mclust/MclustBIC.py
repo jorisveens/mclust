@@ -3,11 +3,10 @@ from collections import defaultdict
 import warnings
 
 from mclust.Exceptions import ModelError
-from mclust.MVN import model_to_mvn
-from mclust.ME import model_to_me
 from mclust.Utility import qclass, mclust_unmap
 from mclust.Models import Model
 from mclust.hc import HCEII, HCVVV
+from mclust.modelfactory import ModelFactory
 
 
 class MclustBIC:
@@ -44,7 +43,7 @@ class MclustBIC:
             if self.groups[0] == 1:
                 for modelIndex, model in enumerate(self.models):
                     if self.fitted_models[model, 1] is None:
-                        mod = model_to_mvn(model, data, prior)
+                        mod = ModelFactory.create(data, model, groups=1, prior=prior)
                         mod.fit()
                         self.fitted_models[model, 1] = mod
 
@@ -69,7 +68,7 @@ class MclustBIC:
                         warnings.warn("there are missing groups")
 
                     # FIXME pass control parameter
-                    mod = model_to_me(model, z, data, prior)
+                    mod = ModelFactory.create(data, model, z=z, prior=prior)
                     mod.fit()
                     self.fitted_models[model, group] = mod
 

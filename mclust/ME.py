@@ -19,7 +19,6 @@ class ME(MixtureModel):
         super().__init__(data, z, prior)
         self._set_control(control)
         self.vinv = None
-        self.returnCode = self._check_z_marix()
 
     def _set_control(self, control=EMControl()):
         self.iterations = np.array(control.itmax[0], order='F')
@@ -44,11 +43,13 @@ class ME(MixtureModel):
                setting Vinv=None.
         :return: return code of Algorithm
         """
-        if self.returnCode != 0:
-            raise ModelError("Model not initialized properly")
 
         if control is not None:
             self._set_control(control)
+
+        self.returnCode = self._check_z_marix()
+        if self.returnCode != 0:
+            return self.returnCode
 
         G = self.z.shape[1]
         if vinv is not None:

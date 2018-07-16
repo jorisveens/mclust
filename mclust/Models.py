@@ -89,6 +89,8 @@ class MixtureModel:
             self.d = data.shape[1]
 
     def bic(self, noise=False, equalpro=False):
+        if self.returnCode is None:
+            raise ModelError("Model is not fitted yet, was fit called on this model?")
         nparams = self.model.n_mclust_params(self.d, self.G, noise, equalpro)
         return 2 * self.loglik - nparams * log(self.n)
 
