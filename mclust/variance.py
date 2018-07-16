@@ -36,12 +36,24 @@ class VarianceSigmasq(Variance):
 class VarianceDecomposition(Variance):
     def __init__(self, d, g, scale, shape, orientation=None):
         super().__init__(d, g)
-        self.scale = scale
-        self.shape = shape
+        self.scale = np.array(scale)
+        if self.scale.ndim == 0:
+            self.scale = np.repeat(scale, g)
+        self.shape = np.array(shape)
+        if self.shape.ndim == 1:
+            self.shape = np.tile(shape, (self.G, 1))
+        # TODO variant orientation
         self.orientation = np.identity(d) if orientation is None else orientation
 
     def get_covariance(self):
-        return self.scale * self.orientation.dot(self.shape).dot(self.orientation.transpose())
+        covariance = np.zeros((self.G, self.d, self.d))
+        for i in range(self.G):
+            covariance[i] = self.scale[i] * \
+                            self.orientation.dot(np.diag(self.shape[i]))\
+                                .dot(self.orientation.transpose())
+
+        # return self.scale * self.orientation.dot(self.shape).dot(self.orientation.transpose())
+        return covariance
 
 
 class VarianceCholesky(Variance):
