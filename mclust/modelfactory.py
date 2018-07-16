@@ -12,6 +12,7 @@ class ModelFactory:
             Model.V: [MVNX, MEV],
             Model.X: [MVNX, MEX],
             Model.EII: [MVNXII, MEEII],
+            Model.VII: [MVNXII, MEVII],
             Model.EEE: [MVNXXX, MEEEE],
             Model.VVV: [MVNXXX, MEVVV],
         }.get(model)
