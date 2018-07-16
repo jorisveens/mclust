@@ -285,6 +285,50 @@ class MEMultiDimensional(ME):
         self.returnCode = 0
 
 
+class MEEII(MEMultiDimensional):
+    def __init__(self, data, z, prior=None, control=EMControl()):
+        super().__init__(data, z, prior, control)
+        self.model = Model.EII
+
+    def _me_fortran(self, control, vinv):
+        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
+        sigmasq = np.array(0, float, order='F')
+        self.pro = np.zeros(self.z.shape[1], float, order='F')
+        if self.prior is None:
+            mclust.meeii(self.control.equalPro,
+                         self.data,
+                         self.G,
+                         -1.0 if vinv is None else vinv,
+                         self.z,
+                         self.iterations,
+                         self.err,
+                         self.loglik,
+                         self.mean,
+                         sigmasq,
+                         self.pro
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+
+    def _m_step_fortran(self):
+        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
+        sigmasq = np.array(0, float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        if self.prior is None:
+            mclust.mseii(self.data,
+                         self.z,
+                         self.G,
+                         self.mean,
+                         sigmasq,
+                         self.pro)
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+
+
 class MEEEE(MEMultiDimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):
         super().__init__(data, z, prior, control)

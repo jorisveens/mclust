@@ -78,7 +78,7 @@ class MclustBIC:
                 self.models = [Model.E, Model.V]
             else:
                 # TODO fill out modelname selection
-                self.models = [Model.EEE, Model.VVV]
+                self.models = [Model.EII, Model.EEE, Model.VVV]
 
     def _handle_group_selection(self, initialization):
         if self.groups is None:

@@ -64,7 +64,7 @@ class TestMVN(unittest.TestCase):
         print(out.groups)
 
     def test_multi_dim(self):
-        out = MclustBIC(self.diabetes, models=[Model.EEE, Model.VVV])
+        out = MclustBIC(self.diabetes)
         print(out.get_bic_matrix())
         print(out.get_return_codes_matrix())
         print(out.models)
