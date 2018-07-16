@@ -427,6 +427,88 @@ class MEEEI(MEMultiDimensional):
         self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
 
 
+class MEVEI(MEMultiDimensional):
+    def __init__(self, data, z, prior=None, control=EMControl()):
+        super().__init__(data, z, prior, control)
+        self.model = Model.VEI
+        self.iters = np.array(control.itmax, np.int32, order='F')
+        self.errs = np.array(control.tol, float, order='F')
+
+    def _me_fortran(self, control, vinv):
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        scale = np.zeros(self.G, float, order='F')
+        shape = np.zeros(self.d, float, order='F')
+        self.pro = np.zeros(self.z.shape[1], float, order='F')
+        scl = np.zeros(self.G, float, order='F')
+        shp = np.zeros(self.d, float, order='F')
+        w = np.zeros((self.d, self.G), float, order='F')
+        if self.prior is None:
+            mclust.mevei(self.control.equalPro,
+                         self.data,
+                         self.G,
+                         -1.0 if vinv is None else vinv,
+                         self.z,
+                         self.iters,
+                         self.errs,
+                         self.loglik,
+                         self.mean,
+                         scale,
+                         shape,
+                         self.pro,
+                         scl,
+                         shp,
+                         w
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.iterations = self.iters[0]
+        self.err = self.errs[0]
+        self.mean = self.mean.transpose()
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+
+    def _m_step_fortran(self):
+        self.iterations = np.array(self.control.itmax[1], np.int32, order='F')
+        self.err = np.array(self.control.tol[1], float, order='F')
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        scale = np.zeros(self.G, float, order='F')
+        shape = np.zeros(self.d, float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        scl = np.zeros(self.G, float, order='F')
+        shp = np.zeros(self.d, float, order='F')
+        w = np.zeros((self.d, self.G), float, order='F')
+        if self.prior is None:
+            mclust.msvei(self.data,
+                         self.z,
+                         self.G,
+                         self.iterations,
+                         self.err,
+                         self.mean,
+                         scale,
+                         shape,
+                         self.pro,
+                         scl,
+                         shp,
+                         w
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+
+        if self.iterations >= self.control.itmax[1]:
+            warnings.warn("inner iteration limit reached")
+
+    def _handle_output(self):
+        ret = super()._handle_output()
+        if ret == 0 or ret == 1:
+            if self.iters[1] >= self.control.itmax[0]:
+                warnings.warn("inner iteration limit reached")
+                self.iters[1] = -self.iters[1]
+        return ret
+
+
 class MEEEE(MEMultiDimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):
         super().__init__(data, z, prior, control)
