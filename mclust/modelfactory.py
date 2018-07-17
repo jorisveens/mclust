@@ -18,6 +18,7 @@ class ModelFactory:
             Model.EVI: [MVNXXI, MEEVI],
             Model.VVI: [MVNXXI, MEVVI],
             Model.EEE: [MVNXXX, MEEEE],
+            Model.EVE: [MVNXXX, MEEVE],
             Model.VVV: [MVNXXX, MEVVV],
         }.get(model)
         if data.ndim == 1:

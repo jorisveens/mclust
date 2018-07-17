@@ -75,6 +75,13 @@ class METestCase(unittest.TestCase):
         print(model)
         print(model.bic())
 
+    def test_MEEVE(self):
+        z = random_z(self.diabetes.shape[0], 4)
+        model = MEEVE(self.diabetes, z)
+        model.fit()
+        print(model)
+        print(model.bic())
+
     def test_MEEEE(self):
         z = random_z(self.diabetes.shape[0], 7)
         model = MEEEE(self.diabetes, z)
@@ -183,6 +190,17 @@ class MStepTest(unittest.TestCase):
         print(model)
         model.m_step()
         print(model)
+
+    def test_mstepEVE(self):
+        hc = HCVVV(self.diabetes)
+        hc.fit()
+        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
+        model = MEEVE(self.diabetes, z)
+        model.fit()
+        print(model)
+        model.m_step()
+        print(model)
+
 
     def test_mstepVVV(self):
         hc = HCVVV(self.diabetes)

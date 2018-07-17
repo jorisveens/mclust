@@ -43,14 +43,19 @@ class VarianceDecomposition(Variance):
         if self.shape.ndim == 1:
             self.shape = np.tile(shape, (self.G, 1))
         # TODO variant orientation
-        self.orientation = np.identity(d) if orientation is None else orientation
+        if orientation is None:
+            self.orientation = np.tile(np.identity(self.d), (self.G, 1)).reshape(self.G, self.d, self.d)
+        elif orientation.ndim == 2:
+            self.orientation = np.tile(orientation, (self.G, 1)).reshape(self.G, self.d, self.d)
+        else:
+            self.orientation = orientation
 
     def get_covariance(self):
         covariance = np.zeros((self.G, self.d, self.d))
         for i in range(self.G):
             covariance[i] = self.scale[i] * \
-                            self.orientation.dot(np.diag(self.shape[i]))\
-                                .dot(self.orientation.transpose())
+                            self.orientation[i].dot(np.diag(self.shape[i]))\
+                                .dot(self.orientation[i].transpose())
 
         # return self.scale * self.orientation.dot(self.shape).dot(self.orientation.transpose())
         return covariance
