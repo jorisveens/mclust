@@ -509,6 +509,57 @@ class MEVEI(MEMultiDimensional):
         return ret
 
 
+class MEEVI(MEMultiDimensional):
+    def __init__(self, data, z, prior=None, control=EMControl()):
+        super().__init__(data, z, prior, control)
+        self.model = Model.EVI
+
+    def _me_fortran(self, control, vinv):
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        scale = np.array(0, float, order='F')
+        shape = np.zeros((self.d, self.G), float, order='F')
+        self.pro = np.zeros(self.z.shape[1], float, order='F')
+        if self.prior is None:
+            mclust.meevi(self.control.equalPro,
+                         self.data,
+                         self.G,
+                         -1.0 if vinv is None else vinv,
+                         self.z,
+                         self.iterations,
+                         self.err,
+                         self.loglik,
+                         self.mean,
+                         scale,
+                         shape,
+                         self.pro
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
+
+    def _m_step_fortran(self):
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        scale = np.array(0, float, order='F')
+        shape = np.zeros((self.d, self.G), float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        if self.prior is None:
+            mclust.msevi(self.data,
+                         self.z,
+                         self.G,
+                         self.mean,
+                         scale,
+                         shape,
+                         self.pro
+                         )
+        else:
+            raise NotImplementedError()
+
+        self.mean = self.mean.transpose()
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+
+
 class MEEEE(MEMultiDimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):
         super().__init__(data, z, prior, control)
