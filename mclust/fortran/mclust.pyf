@@ -346,24 +346,24 @@ python module mclust ! in
             double precision dimension(n,*),depend(n) :: z
         end subroutine eseev
         subroutine meeev(eqpro,x,n,p,g,vinv,z,maxi,tol,eps,lwork,mu,scale,shape_bn,o,pro,w,s) ! in :mclust:mclust.f
-            logical :: eqpro
-            double precision dimension(n,*) :: x
+            logical, intent(in) :: eqpro
+            double precision dimension(n,*), intent(in) :: x
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
-            integer :: g
-            double precision :: vinv
-            double precision dimension(n,*),depend(n) :: z
-            integer :: maxi
-            double precision :: tol
-            double precision :: eps
-            integer :: lwork
-            double precision dimension(p,*) :: mu
-            double precision :: scale
-            double precision dimension(*) :: shape_bn
-            double precision dimension(p,p,*),depend(p,p) :: o
-            double precision dimension(*) :: pro
-            double precision dimension(*) :: w
-            double precision dimension(*) :: s
+            integer, intent(in) :: g
+            double precision, intent(in) :: vinv
+            double precision dimension(n,*),depend(n), intent(inout) :: z
+            integer, intent(inout) :: maxi
+            double precision, intent(inout) :: tol
+            double precision, intent(inout) :: eps
+            integer, intent(in) :: lwork
+            double precision dimension(p,*), intent(inout) :: mu
+            double precision, intent(inout) :: scale
+            double precision dimension(*), intent(inout) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p), intent(inout) :: o
+            double precision dimension(*), intent(inout) :: pro
+            double precision dimension(*), intent(in) :: w
+            double precision dimension(*), intent(in) :: s
         end subroutine meeev
         subroutine meeevp(eqpro,x,n,p,g,vinv,pshrnk,pmu,pscale,pdof,z,maxi,tol,eps,lwork,mu,scale,shape_bn,o,pro,w,s) ! in :mclust:mclust.f
             logical :: eqpro
@@ -390,18 +390,18 @@ python module mclust ! in
             double precision dimension(*) :: s
         end subroutine meeevp
         subroutine mseev(x,z,n,p,g,w,lwork,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
-            double precision dimension(n,*) :: x
-            double precision dimension(n,*),depend(n) :: z
+            double precision dimension(n,*), intent(in) :: x
+            double precision dimension(n,*),depend(n), intent(inout) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
-            integer :: g
-            double precision dimension(*) :: w
-            integer :: lwork
-            double precision dimension(p,*) :: mu
-            double precision :: scale
-            double precision dimension(*) :: shape_bn
-            double precision dimension(p,p,*),depend(p,p) :: o
-            double precision dimension(*) :: pro
+            integer, intent(in) :: g
+            double precision dimension(*), intent(in) :: w
+            integer, intent(in) :: lwork
+            double precision dimension(p,*), intent(inout) :: mu
+            double precision, intent(inout) :: scale
+            double precision dimension(*), intent(inout) :: shape_bn
+            double precision dimension(p,p,*),depend(p,p), intent(inout) :: o
+            double precision dimension(*), intent(inout) :: pro
         end subroutine mseev
         subroutine mseevp(x,z,n,p,g,pshrnk,pmu,pscale,pdof,w,lwork,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
             double precision dimension(n,*) :: x
