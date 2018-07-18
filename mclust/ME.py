@@ -1060,6 +1060,101 @@ class MEEEV(MEMultiDimensional):
         self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
 
 
+class MEVEV(MEMultiDimensional):
+    def __init__(self, data, z, prior=None, control=EMControl()):
+        super().__init__(data, z, prior, control)
+        self.model = Model.VEV
+
+        self.iters = np.array(control.itmax, np.int32, order='F')
+        self.errs = np.array(control.tol, float, order='F')
+        self.info = None
+
+    def _me_fortran(self, control, vinv):
+        lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
+                             5 * min(self.n, self.d),
+                             self.d + self.G), np.int32, order='F')
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        scale = np.zeros(self.G, float, order='F')
+        shape = np.zeros(self.d, float, order='F')
+        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
+        self.pro = np.zeros(self.z.shape[1], float, order='F')
+        w = np.zeros(lwork, float, order='F')
+        s = np.zeros(self.d, float, order='F')
+        if self.prior is None:
+            mclust.mevev(self.control.equalPro,
+                         self.data,
+                         self.G,
+                         -1.0 if vinv is None else vinv,
+                         self.z,
+                         self.iters,
+                         self.errs,
+                         self.loglik,
+                         lwork,
+                         self.mean,
+                         scale,
+                         shape,
+                         orientation,
+                         self.pro,
+                         w,
+                         s
+                         )
+        else:
+            raise NotImplementedError("prior not yet supported")
+
+        self.iterations = self.iters[0]
+        self.info = lwork
+        self.mean = self.mean.transpose()
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
+
+    def _handle_output(self):
+        if self.info:
+            if self.info > 0:
+                warnings.warn("LAPACK DSYEV or DGESVD fails to converge")
+            elif self.info < 0:
+                warnings.warn("input error for LAPACK DSYEV or DGESVD")
+            self.variance = self.mean = self.pro = self.loglik = None
+            return -9
+
+        ret = super()._handle_output()
+        if ret == 0 or ret == 1:
+            if self.iters[1] >= self.control.itmax[0]:
+                warnings.warn("inner iteration limit reached")
+                self.iters[1] = -self.iters[1]
+        return ret
+
+    def _m_step_fortran(self):
+        lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
+                             5 * min(self.n, self.d),
+                             self.d + self.G), np.int32, order='F')
+        w = np.zeros(lwork, float, order='F')
+        self.iterations = self.control.itmax[1]
+        self.err = self.control.tol[1]
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        scale = np.zeros(self.G, float, order='F')
+        shape = np.zeros(self.d, float, order='F')
+        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        if self.prior is None:
+            mclust.msvev(self.data,
+                         self.z,
+                         self.G,
+                         w,
+                         lwork,
+                         self.iterations,
+                         self.err,
+                         self.mean,
+                         scale,
+                         shape,
+                         orientation,
+                         self.pro)
+        else:
+            raise NotImplementedError("prior not yet supported")
+
+        self.info = lwork
+        self.mean = self.mean.transpose()
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
+
+
 class MEVVV(MEMultiDimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):
         super().__init__(data, z, prior, control)
