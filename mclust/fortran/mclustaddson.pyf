@@ -82,23 +82,23 @@ python module mclustaddson ! in
             integer :: info
         end subroutine meevv
         subroutine msvee(x,z,n,p,g,mu,u,c,scale,pro,lwork,info,itmax,tol,niterin,errin,eps) ! in :mclustaddson:mclustaddson.f
-            double precision dimension(n,p) :: x
-            double precision dimension(n,g),depend(n) :: z
+            double precision dimension(n,p), intent(in) :: x
+            double precision dimension(n,g),depend(n), intent(inout) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(x,1)==p),depend(x) :: p=shape(x,1)
             integer, optional,check(shape(z,1)==g),depend(z) :: g=shape(z,1)
-            double precision dimension(p,g),depend(p,g) :: mu
-            double precision dimension(p,p,g),depend(p,p,g) :: u
-            double precision dimension(p,p),depend(p,p) :: c
-            double precision dimension(g),depend(g) :: scale
-            double precision dimension(g),depend(g) :: pro
-            integer :: lwork
-            integer :: info
-            integer :: itmax
-            double precision :: tol
-            integer :: niterin
-            double precision :: errin
-            double precision :: eps
+            double precision dimension(p,g),depend(p,g), intent(inout) :: mu
+            double precision dimension(p,p,g),depend(p,p,g), intent(inout) :: u
+            double precision dimension(p,p),depend(p,p), intent(inout) :: c
+            double precision dimension(g),depend(g), intent(inout) :: scale
+            double precision dimension(g),depend(g), intent(inout) :: pro
+            integer, intent(in) :: lwork
+            integer, intent(inout) :: info
+            integer, intent(in) :: itmax
+            double precision, intent(in) :: tol
+            integer, intent(inout) :: niterin
+            double precision, intent(inout) :: errin
+            double precision, intent(inout) :: eps
         end subroutine msvee
         subroutine esvee(x,z,n,p,g,gnoise,mu,o,scale,shape_bn,pro,vinv,loglik,eps) ! in :mclustaddson:mclustaddson.f
             double precision dimension(n,p) :: x
@@ -117,32 +117,32 @@ python module mclustaddson ! in
             double precision :: eps
         end subroutine esvee
         subroutine mevee(x,z,n,p,g,gnoise,mu,c,u,scale,shape_bn,pro,vinv,loglik,eqpro,itmaxin,tolin,itmaxout,tolout,eps,niterin,errin,niterout,errout,lwork,info) ! in :mclustaddson:mclustaddson.f
-            double precision dimension(n,p) :: x
-            double precision dimension(n,gnoise),depend(n) :: z
+            double precision dimension(n,p), intent(in) :: x
+            double precision dimension(n,gnoise),depend(n), intent(inout) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(x,1)==p),depend(x) :: p=shape(x,1)
             integer, optional,check(shape(mu,1)==g),depend(mu) :: g=shape(mu,1)
             integer, optional,check(shape(z,1)==gnoise),depend(z) :: gnoise=shape(z,1)
-            double precision dimension(p,g),depend(p) :: mu
-            double precision dimension(p,p),depend(p,p) :: c
-            double precision dimension(p,p,g),depend(p,p,g) :: u
-            double precision dimension(g),depend(g) :: scale
-            double precision dimension(p),depend(p) :: shape_bn
-            double precision dimension(gnoise),depend(gnoise) :: pro
-            double precision :: vinv
-            double precision :: loglik
-            logical :: eqpro
-            integer :: itmaxin
-            double precision :: tolin
-            integer :: itmaxout
-            double precision :: tolout
-            double precision :: eps
-            integer :: niterin
-            double precision :: errin
-            integer :: niterout
-            double precision :: errout
-            integer :: lwork
-            integer :: info
+            double precision dimension(p,g),depend(p), intent(inout) :: mu
+            double precision dimension(p,p),depend(p,p), intent(inout) :: c
+            double precision dimension(p,p,g),depend(p,p,g), intent(inout) :: u
+            double precision dimension(g),depend(g), intent(inout) :: scale
+            double precision dimension(p),depend(p), intent(inout) :: shape_bn
+            double precision dimension(gnoise),depend(gnoise), intent(inout) :: pro
+            double precision, intent(in) :: vinv
+            double precision, intent(inout) :: loglik
+            logical, intent(in) :: eqpro
+            integer, intent(in) :: itmaxin
+            double precision, intent(in) :: tolin
+            integer, intent(in) :: itmaxout
+            double precision, intent(in) :: tolout
+            double precision, intent(in) :: eps
+            integer, intent(inout) :: niterin
+            double precision, intent(inout) :: errin
+            integer, intent(inout) :: niterout
+            double precision, intent(inout) :: errout
+            integer, intent(in) :: lwork
+            integer, intent(inout) :: info
         end subroutine mevee
         subroutine mseve(x,z,n,p,g,mu,u,o,scale,shape_bn,pro,lwork,info,itmax,tol,niterin,errin,eps) ! in :mclustaddson:mclustaddson.f
             double precision dimension(n,p), intent(in) :: x
