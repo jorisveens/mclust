@@ -81,7 +81,7 @@ class MclustBIC:
                 self.models = [Model.EII, Model.VII, Model.EEI, Model.VEI,
                                Model.EVI, Model.VVI, Model.EEE, Model.EVE,
                                Model.VEE, Model.VVE, Model.EEV, Model.VEV,
-                               Model.VVV]
+                               Model.EVV, Model.VVV]
 
     def _handle_group_selection(self, initialization):
         if self.groups is None:

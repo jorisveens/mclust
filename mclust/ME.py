@@ -12,7 +12,6 @@ from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposi
 
 # TODO implement vinv and prior
 # TODO refactor decomposition variance models to include check for invalid elements
-# CONTINUE implement other models
 
 
 class ME(MixtureModel):
@@ -1154,6 +1153,93 @@ class MEVEV(MEMultiDimensional):
         self.mean = self.mean.transpose()
         self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
 
+
+class MEEVV(MEMultiDimensional):
+    def __init__(self, data, z, prior=None, control=EMControl()):
+        super().__init__(data, z, prior, control)
+        self.model = Model.EVV
+
+        self.info = np.array(0, np.int32, order='F')
+
+    def _me_fortran(self, control, vinv):
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
+        u = np.zeros((self.d, self.d, self.G), float, order='F')
+        scale = np.zeros(self.G, float, order='F')
+        shape = np.zeros((self.d, self.G), float, order='F')
+        self.pro = np.zeros(self.z.shape[1], float, order='F')
+        self.loglik = np.array(0, float, order='F')
+        lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
+                             5 * min(self.n, self.d),
+                             self.d + self.G), np.int32, order='F')
+
+        if self.prior is None:
+            mclustaddson.meevv(self.data,
+                               self.z,
+                               self.mean,
+                               orientation,
+                               u,
+                               scale,
+                               shape,
+                               self.pro,
+                               -1.0 if vinv is None else vinv,
+                               self.loglik,
+                               self.control.equalPro,
+                               self.control.itmax[0],
+                               self.control.tol[0],
+                               self.control.eps,
+                               self.iterations,
+                               self.err,
+                               lwork,
+                               self.info
+                               )
+        else:
+            raise NotImplementedError("prior not yet supported")
+
+        self.mean = self.mean.transpose()
+        scale = np.array(scale[0], float, order='F')
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose((2, 1, 0)))
+
+    def _handle_output(self):
+        if self.info:
+            if self.info > 0:
+                warnings.warn("LAPACK DSYEV or DGESVD fails to converge")
+            elif self.info < 0:
+                warnings.warn("input error for LAPACK DSYEV or DGESVD")
+            self.variance = self.mean = self.pro = self.loglik = None
+            return -9
+        return super()._handle_output()
+
+    def _m_step_fortran(self):
+        self.mean = np.zeros((self.d, self.G), float, order='F')
+        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
+        u = np.zeros((self.d, self.d, self.G), float, order='F')
+        scale = np.zeros(self.G, float, order='F')
+        shape = np.zeros((self.d, self.G), float, order='F')
+        self.pro = np.zeros(self.G, float, order='F')
+        lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
+                             5 * min(self.n, self.d),
+                             self.d + self.G), np.int32, order='F')
+        self.info = np.array(0, np.int32, order='F')
+        if self.prior is None:
+            mclustaddson.msevv(self.data,
+                               self.z,
+                               self.mean,
+                               orientation,
+                               u,
+                               scale,
+                               shape,
+                               self.pro,
+                               lwork,
+                               self.info,
+                               self.control.eps
+                               )
+        else:
+            raise NotImplementedError("prior not yet supported")
+
+        self.mean = self.mean.transpose()
+        scale = np.array(scale[0], float, order='F')
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose((2, 1, 0)))
 
 class MEVVV(MEMultiDimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):
