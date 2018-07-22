@@ -1,16 +1,66 @@
 import unittest
+import json
+import pkg_resources
 import numpy as np
 
 from mclust.Utility import qclass, mclust_unmap
 from mclust.hc import HCVVV
 from mclust.ME import *
 
+resource_package = 'mclust'
+
+
+def apply_resource(directory, file, func):
+    resource_path = '/'.join(('resources', directory, file))
+    with pkg_resources.resource_stream(resource_package, resource_path) as f:
+        return func(f)
+
+
+def clean_json(data):
+    unitary = ['modelName', 'n', 'd', 'G', 'loglik', 'returnCode']
+    for var in unitary:
+        if var not in data.keys():
+            continue
+        data[var] = data[var][0]
+
+    data['z'] = np.asfortranarray(data['z'])
+    parameter_arrays = ['pro', 'mean']
+    for var in parameter_arrays:
+        data['parameters'][var] = np.asfortranarray(data['parameters'][var])
+
+    data['parameters']['variance']['sigma'] = np.asfortranarray(data['parameters']['variance']['sigma'])
+    return data
+
 
 class METestCase(unittest.TestCase):
-    testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
-    test_data = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)], float, order='F')
-    # TODO pacakge test data
-    diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
+    def setUp(self):
+        self.diabetes = apply_resource('data_sets', 'diabetes.csv',
+                                       lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
+        self.testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
+        self.groups = [2, 3, 4, 5]
+        self.z_matrices = {}
+        for group in self.groups:
+            self.z_matrices[group] = apply_resource(
+                'test_data', f'z-diabetes-{group}.csv',
+                lambda f: np.asfortranarray(np.genfromtxt(f,
+                                                          delimiter=',')))
+
+    def multi_dimensional_test_template(self, name, func):
+        for group in self.groups:
+            model = func(self.diabetes, self.z_matrices[group])
+            model.fit()
+            expected = apply_resource('test_data', f'diabetes-{name}-{group}.json',
+                                      lambda f: clean_json(json.load(f)))
+
+            self.assertEqual(expected['returnCode'],
+                             model.returnCode)
+            self.assertTrue(np.allclose(expected['loglik'], model.loglik))
+            self.assertTrue(np.allclose(expected['parameters']['mean'].transpose(),
+                                        model.mean))
+            self.assertTrue(np.allclose(expected['parameters']['variance']['sigma'].transpose(2, 1, 0),
+                                        model.variance.get_covariance()))
+            self.assertTrue(np.allclose(expected['z'],
+                                        model.z, atol=0.0001))
 
     def test_MEE(self):
         z = mclust_unmap(qclass(self.testData, 2))
@@ -28,119 +78,87 @@ class METestCase(unittest.TestCase):
         print(me)
 
     def test_MEVVV(self):
-        z = random_z(self.diabetes.shape[0], 3)
-        model = MEVVV(self.diabetes, z)
-        print(model.fit())
-        print(model)
+        self.multi_dimensional_test_template('VVV', MEVVV)
 
     def test_MEEII(self):
-        z = random_z(self.diabetes.shape[0], 3)
-        model = MEEII(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('EII', MEEII)
 
     def test_MEVII(self):
-        z = random_z(self.diabetes.shape[0], 3)
-        model = MEVII(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('VII', MEVII)
 
     def test_MEEEI(self):
-        z = random_z(self.diabetes.shape[0], 3)
-        model = MEEEI(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('EEI', MEEEI)
 
     def test_MEVEI(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEVEI(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('VEI', MEVEI)
 
     def test_MEEVI(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEEVI(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('EVI', MEEVI)
 
     def test_MEVVI(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEVVI(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('VVI', MEVVI)
 
     def test_MEEVE(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEEVE(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('EVE', MEEVE)
 
     def test_MEVEE(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEVEE(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('VEE', MEVEE)
 
     def test_MEVVE(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEVVE(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('VVE', MEVVE)
 
     def test_MEEEV(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEEEV(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('EEV', MEEEV)
 
     def test_MEVEV(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([4])[:, 0])
-        model = MEVEV(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('VEV', MEVEV)
 
     def test_MEEVV(self):
-        z = random_z(self.diabetes.shape[0], 4)
-        model = MEEVV(self.diabetes, z)
-        model.fit()
-        print(model)
-        print(model.bic())
+        self.multi_dimensional_test_template('EVV', MEEVV)
 
     def test_MEEEE(self):
-        z = random_z(self.diabetes.shape[0], 7)
-        model = MEEEE(self.diabetes, z)
-        model.fit()
-        print(model)
+        self.multi_dimensional_test_template('EEE', MEEEE)
 
 
 def random_z(n, g):
     z = np.zeros((n, g), float, order='F')
     for i in range(n):
         sum = 1.0
-        for j in range(g-1):
+        for j in range(g - 1):
             rand = np.random.uniform(high=sum)
             z[i, j] = rand
             sum -= rand
-        z[i, g-1] = sum
+        z[i, g - 1] = sum
     return z
 
 
 class MStepTest(unittest.TestCase):
-    testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
-    diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
+    def setUp(self):
+        self.diabetes = apply_resource('data_sets', 'diabetes.csv',
+                                       lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
+        self.testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
+        self.groups = [2, 3, 4, 5]
+        self.z_matrices = {}
+        for group in self.groups:
+            self.z_matrices[group] = apply_resource(
+                'test_data', f'z-diabetes-{group}.csv',
+                lambda f: np.asfortranarray(np.genfromtxt(f,
+                                                          delimiter=',')))
+
+    def multi_dimensional_test_template(self, name, func):
+        for group in self.groups:
+            model = func(self.diabetes, self.z_matrices[group])
+            model.fit()
+            model.m_step()
+            expected = apply_resource('test_data', f'diabetes-{name}-{group}-mstep.json',
+                                      lambda f: clean_json(json.load(f)))
+
+            self.assertEqual(expected['returnCode'],
+                             model.returnCode)
+            self.assertTrue(np.allclose(expected['parameters']['mean'].transpose(),
+                                        model.mean))
+            self.assertTrue(np.allclose(expected['parameters']['variance']['sigma'].transpose(2, 1, 0),
+                                        model.variance.get_covariance()))
 
     def test_mstepE(self):
         z = mclust_unmap(qclass(self.testData, 3))
@@ -159,144 +177,46 @@ class MStepTest(unittest.TestCase):
         print(model)
 
     def test_mstepEEE(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEEE(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EEE', MEEEE)
 
     def test_mstepEII(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEII(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EII', MEEII)
 
     def test_mstepVII(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVII(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VII', MEVII)
 
     def test_mstepEEI(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEEI(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EEI', MEEEI)
 
     def test_mstepVEI(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVEI(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VEI', MEVEI)
 
     def test_mstepEVI(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEVI(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EVI', MEEVI)
 
     def test_mstepVVI(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVVI(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VVI', MEVVI)
 
     def test_mstepEVE(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEVE(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EVE', MEEVE)
 
     def test_mstepVEE(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVEE(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VEE', MEVEE)
 
     def test_mstepVVE(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVVE(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VVE', MEVVE)
 
     def test_mstepEEV(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEEV(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EEV', MEEEV)
 
     def test_mstepVEV(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVEV(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VEV', MEVEV)
 
     def test_mstepEVV(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEEVV(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('EVV', MEEVV)
 
     def test_mstepVVV(self):
-        hc = HCVVV(self.diabetes)
-        hc.fit()
-        z = mclust_unmap(hc.get_class_matrix([3])[:, 0])
-        model = MEVVV(self.diabetes, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.multi_dimensional_test_template('VVV', MEVVV)
 
 
 if __name__ == '__main__':

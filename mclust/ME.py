@@ -557,7 +557,7 @@ class MEEVI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
 
 
 class MEVVI(MEMultiDimensional):

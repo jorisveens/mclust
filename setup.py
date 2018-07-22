@@ -1,3 +1,7 @@
+from os import listdir
+from os.path import isfile, join
+
+
 if __name__ == '__main__':
     from numpy.distutils.core import setup, Extension
 
@@ -12,7 +16,11 @@ if __name__ == '__main__':
                                 'mclust/fortran/mclustaddson.f'],
                        libraries=['lapack', 'blas', 'slatec', 'gfortran', 'm', 'quadmath', 'R'])
 
+    test_files = ['resources/test_data/' + f for f in listdir('resources/test_data') if isfile(join('resources/test_data', f))]
+
     setup(name='mclust',
           version=0.0,
           packages=['mclust', 'mclust.fortran'],
-          ext_modules=[mclustaddson, mclust])
+          ext_modules=[mclustaddson, mclust],
+          data_files=[('mclust/resources/data_sets', ['resources/data_sets/diabetes.csv']),
+                      ('mclust/resources/test_data', test_files)])
