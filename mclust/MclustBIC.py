@@ -100,7 +100,7 @@ class MclustBIC:
                 raise ModelError("G must be non-negative")
 
     def get_bic_matrix(self):
-        bic_matrix = np.full((len(self.groups), len(self.models)), None)
+        bic_matrix = np.full((len(self.groups), len(self.models)), float('nan'), dtype=float)
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
                 fitted = self.fitted_models[model, group]
@@ -109,7 +109,7 @@ class MclustBIC:
         return bic_matrix
 
     def get_return_codes_matrix(self):
-        ret_matrix = np.full((len(self.groups), len(self.models)), None)
+        ret_matrix = np.full((len(self.groups), len(self.models)), -42, dtype=int)
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
                 fitted = self.fitted_models[model, group]
@@ -119,5 +119,5 @@ class MclustBIC:
 
     def pick_best_model(self):
         bic_matrix = self.get_bic_matrix()
-        index = np.unravel_index(np.argmax(bic_matrix), bic_matrix.shape)
+        index = np.unravel_index(np.nanargmax(bic_matrix), bic_matrix.shape)
         return self.fitted_models[self.models[index[1]], self.groups[index[0]]]
