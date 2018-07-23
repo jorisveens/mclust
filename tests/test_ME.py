@@ -4,7 +4,6 @@ import pkg_resources
 import numpy as np
 
 from mclust.Utility import qclass, mclust_unmap
-from mclust.hc import HCVVV
 from mclust.ME import *
 
 resource_package = 'mclust'
@@ -28,7 +27,10 @@ def clean_json(data):
     for var in parameter_arrays:
         data['parameters'][var] = np.asfortranarray(data['parameters'][var])
 
-    data['parameters']['variance']['sigma'] = np.asfortranarray(data['parameters']['variance']['sigma'])
+    if 'sigma' in data['parameters']['variance']:
+        data['parameters']['variance']['sigma'] = np.asfortranarray(data['parameters']['variance']['sigma'])
+    elif 'sigmasq' in data['parameters']['variance']:
+        data['parameters']['variance']['sigmasq'] = np.asfortranarray(data['parameters']['variance']['sigmasq'])
     return data
 
 
@@ -36,7 +38,8 @@ class METestCase(unittest.TestCase):
     def setUp(self):
         self.diabetes = apply_resource('data_sets', 'diabetes.csv',
                                        lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
-        self.testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
+        self.simulated1d = apply_resource('data_sets', 'simulated1d.csv',
+                                          lambda f: np.genfromtxt(f, delimiter=','))
         self.groups = [2, 3, 4, 5]
         self.z_matrices = {}
         for group in self.groups:
@@ -62,20 +65,28 @@ class METestCase(unittest.TestCase):
             self.assertTrue(np.allclose(expected['z'],
                                         model.z, atol=0.0001))
 
+    def single_dimensional_test_template(self, name, func):
+        for group in self.groups:
+            model = func(self.simulated1d, self.z_matrices[group])
+            model.fit()
+            expected = apply_resource('test_data', f'simulated1d-{name}-{group}.json',
+                                      lambda f: clean_json(json.load(f)))
+
+            self.assertEqual(expected['returnCode'],
+                             model.returnCode)
+            self.assertTrue(np.allclose(expected['loglik'], model.loglik))
+            self.assertTrue(np.allclose(np.array([expected['parameters']['mean']]).transpose(),
+                                        model.mean))
+            self.assertTrue(np.allclose(expected['parameters']['variance']['sigmasq'],
+                                        model.variance.sigmasq, atol=0.0001))
+            self.assertTrue(np.allclose(expected['z'],
+                                        model.z, atol=0.0001))
+
     def test_MEE(self):
-        z = mclust_unmap(qclass(self.testData, 2))
-        print(self.testData.shape)
-        me = MEE(self.testData, z)
-        me.fit()
-        print(me.variance.get_covariance())
-        print(me)
+        self.single_dimensional_test_template('E', MEE)
 
     def test_MEV(self):
-        z = mclust_unmap(qclass(self.testData, 2))
-        me = MEV(self.testData, z)
-        me.fit()
-        print(me.variance.get_covariance())
-        print(me)
+        self.single_dimensional_test_template('V', MEV)
 
     def test_MEVVV(self):
         self.multi_dimensional_test_template('VVV', MEVVV)

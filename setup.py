@@ -22,5 +22,6 @@ if __name__ == '__main__':
           version=0.0,
           packages=['mclust', 'mclust.fortran'],
           ext_modules=[mclustaddson, mclust],
-          data_files=[('mclust/resources/data_sets', ['resources/data_sets/diabetes.csv']),
+          data_files=[('mclust/resources/data_sets', ['resources/data_sets/diabetes.csv',
+                                                      'resources/data_sets/simulated1d.csv']),
                       ('mclust/resources/test_data', test_files)])
