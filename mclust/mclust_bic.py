@@ -119,5 +119,9 @@ class MclustBIC:
 
     def pick_best_model(self):
         bic_matrix = self.get_bic_matrix()
-        index = np.unravel_index(np.nanargmax(bic_matrix), bic_matrix.shape)
+        try:
+            index = np.unravel_index(np.nanargmax(bic_matrix), bic_matrix.shape)
+        except ValueError:
+            # No valid models
+            return None
         return self.fitted_models[self.models[index[1]], self.groups[index[0]]]
