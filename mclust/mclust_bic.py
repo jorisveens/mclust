@@ -6,7 +6,7 @@ from mclust.exceptions import ModelError
 from mclust.utility import qclass, mclust_unmap
 from mclust.models import Model
 from mclust.hierarchical_clustering import HCEII, HCVVV
-from mclust.modelfactory import ModelFactory
+from mclust.model_factory import ModelFactory
 
 
 class MclustBIC:

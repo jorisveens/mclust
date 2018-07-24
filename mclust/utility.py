@@ -19,8 +19,11 @@ def qclass(x, k):
 
     if len(q) > (k+1):
         # only take largest quantiles
+        dq = np.diff(q)
+
         nr = len(q)-k-1
-        q = q[0:nr]
+        select = np.argsort(dq)[0:nr]
+        q = np.delete(q, select)
 
     q[0] = min(x_flat) - eps
     q[-1] = max(x_flat) + eps
