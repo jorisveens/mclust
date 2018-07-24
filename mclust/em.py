@@ -2,12 +2,12 @@ import numpy as np
 import warnings
 from math import sqrt
 
-from mclust.Exceptions import ModelError, AbstractMethodError
-from mclust.Control import EMControl
-from mclust.Models import Model, MixtureModel
-from mclust.Utility import round_sig, mclust_map
+from mclust.exceptions import ModelError, AbstractMethodError
+from mclust.control import EMControl
+from mclust.models import Model, MixtureModel
+from mclust.utility import round_sig, mclust_map
 from mclust.fortran import mclust, mclustaddson
-from mclust.MVN import MVNX
+from mclust.multi_var_normal import MVNX
 from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposition
 
 # TODO implement vinv and prior

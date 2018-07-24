@@ -1,8 +1,8 @@
 import numpy as np
 import warnings
-from mclust.Exceptions import ModelError, AbstractMethodError
+from mclust.exceptions import ModelError, AbstractMethodError
 from mclust.fortran.mclust import hcvvv, hceii
-from mclust.Utility import traceW, partconv, scale
+from mclust.utility import traceW, partconv, scale
 
 
 class HC:

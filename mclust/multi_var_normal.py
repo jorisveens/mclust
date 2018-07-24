@@ -1,8 +1,8 @@
 from mclust.fortran import mclust
 
-from mclust.Exceptions import *
-from mclust.Models import Model, MixtureModel
-from mclust.Utility import round_sig
+from mclust.exceptions import *
+from mclust.models import Model, MixtureModel
+from mclust.utility import round_sig
 from mclust.variance import *
 
 import numpy as np

@@ -1,6 +1,6 @@
 import numpy as np
 
-from mclust.Exceptions import DimensionError
+from mclust.exceptions import DimensionError
 
 
 class Variance:

@@ -1,6 +1,6 @@
 import numpy as np
 from math import sqrt, floor, log10
-from mclust.Exceptions import ModelError
+from mclust.exceptions import ModelError
 from mclust.fortran.mclust import mcltrw
 
 

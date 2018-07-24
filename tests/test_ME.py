@@ -3,8 +3,8 @@ import json
 import pkg_resources
 import numpy as np
 
-from mclust.Utility import qclass, mclust_unmap
-from mclust.ME import *
+from mclust.utility import qclass, mclust_unmap
+from mclust.em import *
 
 resource_package = 'mclust'
 

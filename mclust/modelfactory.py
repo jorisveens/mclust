@@ -1,8 +1,8 @@
-from mclust.Models import Model
-from mclust.MVN import *
-from mclust.ME import *
-from mclust.Utility import mclust_unmap, qclass
-from mclust.hc import HCEII, HCVVV
+from mclust.models import Model
+from mclust.multi_var_normal import *
+from mclust.em import *
+from mclust.utility import mclust_unmap, qclass
+from mclust.hierarchical_clustering import HCEII, HCVVV
 
 
 class ModelFactory:

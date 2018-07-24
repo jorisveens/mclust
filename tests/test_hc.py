@@ -1,8 +1,8 @@
 from unittest import TestCase
 import numpy as np
 
-from mclust.hc import *
-from mclust.Utility import mclust_unmap
+from mclust.hierarchical_clustering import *
+from mclust.utility import mclust_unmap
 
 
 class TestHc(TestCase):

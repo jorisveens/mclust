@@ -1,8 +1,8 @@
 import unittest
 import pkg_resources
 
-from mclust.MclustBIC import MclustBIC
-from mclust.Models import Model
+from mclust.mclust_bic import MclustBIC
+from mclust.models import Model
 import numpy as np
 
 # TODO add test for models that fail

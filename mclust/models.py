@@ -1,7 +1,7 @@
 from enum import Enum
 from math import log
 
-from mclust.Exceptions import ModelError, AbstractMethodError
+from mclust.exceptions import ModelError, AbstractMethodError
 
 
 class Model(Enum):

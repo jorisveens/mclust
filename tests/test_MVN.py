@@ -1,7 +1,7 @@
 from unittest import TestCase
 import numpy as np
 
-from mclust.MVN import *
+from mclust.multi_var_normal import *
 
 
 class TestMVNXXI(TestCase):

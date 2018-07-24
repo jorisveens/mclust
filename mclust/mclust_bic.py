@@ -2,10 +2,10 @@ import numpy as np
 from collections import defaultdict
 import warnings
 
-from mclust.Exceptions import ModelError
-from mclust.Utility import qclass, mclust_unmap
-from mclust.Models import Model
-from mclust.hc import HCEII, HCVVV
+from mclust.exceptions import ModelError
+from mclust.utility import qclass, mclust_unmap
+from mclust.models import Model
+from mclust.hierarchical_clustering import HCEII, HCVVV
 from mclust.modelfactory import ModelFactory
 
 
