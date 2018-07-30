@@ -66,6 +66,7 @@ class Model(Enum):
         return nparams
 
 
+# TODO data and z to fit function...
 class MixtureModel:
     def __init__(self, data, z=None, prior=None):
         self.model = None
