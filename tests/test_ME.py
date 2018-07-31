@@ -230,5 +230,71 @@ class MStepTest(unittest.TestCase):
         self.multi_dimensional_test_template('VVV', MEVVV)
 
 
+class EStepTest(unittest.TestCase):
+    def setUp(self):
+        self.diabetes = apply_resource('data_sets', "diabetes.csv",
+                                       lambda f: np.genfromtxt(f, skip_header=1, delimiter=','))
+        self.classes = apply_resource('data_sets', "diabetes_classification.csv",
+                                      lambda f: np.genfromtxt(f, delimiter=','))
+
+    def multi_dimensional_test_template(self, name, func):
+        model = func(self.diabetes, mclust_unmap(self.classes))
+        model.m_step()
+        model.e_step()
+        expected = apply_resource('test_data', f'diabetes-{name}-3-estep.json',
+                                  lambda f: clean_json(json.load(f)))
+
+        self.assertEqual(expected['returnCode'],
+                         model.returnCode)
+        self.assertTrue(np.allclose(expected['parameters']['mean'].transpose(),
+                                    model.mean))
+        self.assertTrue(np.allclose(expected['parameters']['variance']['sigma'].transpose(2, 1, 0),
+                                    model.variance.get_covariance()))
+        self.assertTrue(np.allclose(expected['loglik'], model.loglik))
+        self.assertTrue(np.allclose(expected['z'], model.z, atol=0.0001))
+
+    def test_mstepEEE(self):
+        self.multi_dimensional_test_template('EEE', MEEEE)
+
+    def test_mstepEII(self):
+        self.multi_dimensional_test_template('EII', MEEII)
+
+    def test_mstepVII(self):
+        self.multi_dimensional_test_template('VII', MEVII)
+
+    def test_mstepEEI(self):
+        self.multi_dimensional_test_template('EEI', MEEEI)
+
+    def test_mstepVEI(self):
+        self.multi_dimensional_test_template('VEI', MEVEI)
+
+    def test_mstepEVI(self):
+        self.multi_dimensional_test_template('EVI', MEEVI)
+
+    def test_mstepVVI(self):
+        self.multi_dimensional_test_template('VVI', MEVVI)
+
+    def test_mstepEVE(self):
+        self.multi_dimensional_test_template('EVE', MEEVE)
+
+    def test_mstepVEE(self):
+        self.multi_dimensional_test_template('VEE', MEVEE)
+
+    def test_mstepVVE(self):
+        self.multi_dimensional_test_template('VVE', MEVVE)
+
+    def test_mstepEEV(self):
+        self.multi_dimensional_test_template('EEV', MEEEV)
+
+    def test_mstepVEV(self):
+        self.multi_dimensional_test_template('VEV', MEVEV)
+
+    def test_mstepEVV(self):
+        self.multi_dimensional_test_template('EVV', MEEVV)
+
+    def test_mstepVVV(self):
+        self.multi_dimensional_test_template('VVV', MEVVV)
+
+
 if __name__ == '__main__':
     unittest.main()

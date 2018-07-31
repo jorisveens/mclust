@@ -10,6 +10,7 @@ from mclust.fortran import mclust, mclustaddson
 from mclust.multi_var_normal import MVNX
 from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposition
 
+
 # TODO implement vinv and prior
 # TODO refactor decomposition variance models to include check for invalid elements
 
@@ -64,7 +65,8 @@ class ME(MixtureModel):
         return self.returnCode
 
     def m_step(self):
-        raise AbstractMethodError()
+        if self.G is None:
+            self.G = self.z.shape[1]
 
     def e_step(self):
         raise AbstractMethodError()
@@ -136,6 +138,7 @@ class ME1Dimensional(ME):
         return super()._handle_output()
 
     def m_step(self):
+        super().m_step()
         ret = self._check_z_marix()
         if ret != 0:
             return ret
@@ -270,6 +273,7 @@ class MEMultiDimensional(ME):
             raise ModelError("data must be 2 dimensional")
 
     def m_step(self):
+        super().m_step()
         ret = self._check_z_marix()
         if ret != 0:
             return ret
@@ -283,6 +287,59 @@ class MEMultiDimensional(ME):
             return -1
 
         self.returnCode = 0
+
+    def e_step(self):
+        if self.pro is None or np.any(np.isnan(self.pro)) or \
+                self.mean is None or np.any(np.isnan(self.mean)) or \
+                self.variance is None or np.any(np.isnan(self.variance.get_covariance())):
+            warnings.warn("parameters are missing")
+            self.z = np.full((self.n, self.p), float('nan'))
+            self.loglik = float('nan')
+            self.returnCode = 9
+            return
+
+        self.pro = self.pro / sum(self.pro)
+        l = len(self.pro)
+
+        # TODO implemenmt vinv
+        k = self.G
+
+        # not all models have cholsigma, so this needs to be calculated
+        cholsigma = self.variance.get_covariance()
+        # for group in range(self.G):
+        #     cholsigma[group] = np.linalg.cholesky(cholsigma[group])
+        cholsigma = cholsigma.transpose(2, 1, 0)
+
+        w = np.zeros(self.d, float, order='F')
+        self.z = np.zeros((self.n, k), float, order='F')
+
+        # TODO test setting chol to 0 without doing cholesky decomposition
+        mclust.esvvv(False,
+                     self.data,
+                     self.mean.transpose(),
+                     cholsigma,
+                     self.pro,
+                     self.G,
+                     -1 if self.vinv is None else self.vinv,
+                     w,
+                     self.loglik,
+                     self.z
+                     )
+
+        info = w[0]
+        if info:
+            if info > 0:
+                warnings.warn("sigma is not positive definite")
+            else:
+                warnings.warn("input error for LAPACK DPOTRF")
+            self.loglik = None
+            self.returnCode = -9
+        elif self.loglik > round_sig(np.finfo(float).max, 6):
+            warnings.warn("cannot compute E-step")
+            self.loglik = None
+            self.returnCode = -1
+        else:
+            self.returnCode = 0
 
 
 class MEEII(MEMultiDimensional):
@@ -609,8 +666,6 @@ class MEVVI(MEMultiDimensional):
 
         self.mean = self.mean.transpose()
         self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
-
-
 
 
 class MEEEE(MEMultiDimensional):
@@ -1198,7 +1253,9 @@ class MEEVV(MEMultiDimensional):
 
         self.mean = self.mean.transpose()
         scale = np.array(scale[0], float, order='F')
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose((2, 1, 0)))
+        self.variance = VarianceDecomposition(self.d, self.G, scale,
+                                              shape.transpose(),
+                                              orientation.transpose((2, 1, 0)))
 
     def _handle_output(self):
         if self.info:
@@ -1239,7 +1296,9 @@ class MEEVV(MEMultiDimensional):
 
         self.mean = self.mean.transpose()
         scale = np.array(scale[0], float, order='F')
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose((2, 1, 0)))
+        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(),
+                                              orientation.transpose((2, 1, 0)))
+
 
 class MEVVV(MEMultiDimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):

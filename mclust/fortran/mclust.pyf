@@ -997,18 +997,18 @@ python module mclust ! in
             double precision dimension(*) :: pro
         end subroutine msvvip
         subroutine esvvv(chol,x,mu,sigma,pro,n,p,g,vinv,w,hood,z) ! in :mclust:mclust.f
-            logical :: chol
-            double precision dimension(n,*) :: x
-            double precision dimension(p,*) :: mu
-            double precision dimension(p,p,*),depend(p,p) :: sigma
-            double precision dimension(*) :: pro
+            logical, intent(in) :: chol
+            double precision dimension(n,*), intent(in) :: x
+            double precision dimension(p,*), intent(in) :: mu
+            double precision dimension(p,p,*),depend(p,p), intent(in) :: sigma
+            double precision dimension(*), intent(in) :: pro
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
-            integer :: g
-            double precision :: vinv
-            double precision dimension(*) :: w
-            double precision :: hood
-            double precision dimension(n,*),depend(n) :: z
+            integer, intent(in) :: g
+            double precision, intent(in) :: vinv
+            double precision dimension(*), intent(inout) :: w
+            double precision, intent(inout) :: hood
+            double precision dimension(n,*),depend(n), intent(inout) :: z
         end subroutine esvvv
         subroutine hcvvv(x,n,p,ic,ng,ns,alpha,beta,v,u,s,r,nd,d) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(inout) :: x
