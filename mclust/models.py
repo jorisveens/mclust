@@ -1,3 +1,4 @@
+import copy
 from enum import Enum
 from math import log
 
@@ -66,11 +67,9 @@ class Model(Enum):
         return nparams
 
 
-# TODO data and z to fit function...
 class MixtureModel:
     def __init__(self, data, z=None, prior=None):
         self.model = None
-        self.prior = None
         self.G = None
         self.mean = None
         self.pro = None
@@ -103,6 +102,21 @@ class MixtureModel:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         elif self.returnCode != 0:
             raise ModelError("Model not fitted correctly, check warnings and returnCode for more information.")
+
+    def __deepcopy__(self, memodict={}):
+        new = type(self)(self.data, self.z.copy(order='F'))
+        new.G = copy.deepcopy(self.G)
+        new.mean = copy.deepcopy(self.mean)
+        new.pro = copy.deepcopy(self.pro)
+
+        new.variance = copy.deepcopy(self.variance)
+
+        new.loglik = copy.deepcopy(self.loglik)
+        new.returnCode = self.returnCode
+
+        new.prior = self.prior
+
+        return new
 
     def __str__(self):
         return f"modelname: {self.model}\n" \
