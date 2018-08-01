@@ -13,6 +13,7 @@ from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposi
 
 # TODO implement vinv and prior
 # TODO refactor decomposition variance models to include check for invalid elements
+# FIXME estep 1D models
 
 
 class ME(MixtureModel):
@@ -115,7 +116,9 @@ class ME(MixtureModel):
         return 0
 
     def classify(self):
-        super().classify()
+        result = super().classify()
+        if result is not None:
+            return result
         if pow((np.sum(self.pro) - np.sum(np.mean(self.z, axis=0))), 2) > sqrt(np.finfo(float).eps):
             print("pro and z mean condition thingy holds")
             self.m_step()
@@ -298,7 +301,7 @@ class MEMultiDimensional(ME):
             self.returnCode = 9
             return
 
-        self.pro = self.pro / sum(self.pro)
+        self.pro = self.pro / np.sum(self.pro)
         l = len(self.pro)
 
         # TODO implemenmt vinv

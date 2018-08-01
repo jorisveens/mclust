@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 from enum import Enum
 from math import log
 
@@ -102,6 +103,8 @@ class MixtureModel:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         elif self.returnCode != 0:
             raise ModelError("Model not fitted correctly, check warnings and returnCode for more information.")
+        if self.G == 1:
+            return np.zeros(self.n)
 
     def __deepcopy__(self, memodict={}):
         new = type(self)(self.data, self.z.copy(order='F'))

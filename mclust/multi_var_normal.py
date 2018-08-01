@@ -24,10 +24,6 @@ class MVN(MixtureModel):
         self.returnCode = 0
         return self.returnCode
 
-    def classify(self):
-        super().classify()
-        return np.zeros(self.n)
-
 
 class MVNX(MVN):
     def __init__(self, data, z=None, prior=None):
@@ -47,7 +43,7 @@ class MVNX(MVN):
         else:
             raise NotImplementedError()
 
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.G, np.array(sigmasq))
         self.mean = np.array(self.mean).transpose()
 
         return self._check_output()
