@@ -7,6 +7,20 @@ from mclust.exceptions import ModelError, AbstractMethodError
 
 
 class Model(Enum):
+    """
+    Enumeration of all mclust model variants.
+
+
+    Model variants stem from the eigen-decomposition of the multivariate normal covariance parameter used in Gaussian
+    finite mixture modeling. Resulting in a decomposition into scale (determines volume of cluster), shape (determines
+    scatter of points in each dimension
+    along the eigenvectors of the covariance), and orientation (eigenvectors of covariance).
+
+    Between different cluster groups the scale, shape and orientation can vary (V), be equal (E) or be Identity (I). Some
+    combinations are redundant leading to 2 one dimensional models, and 14 multivariate models, listed in this
+    enumeration. 4 more models are defined, X, XII, XXI, and XXX, which are used for models with only 1 cluster
+    component.
+    """
     E = 'E'
     V = 'V'
     EII = 'EII'
@@ -24,12 +38,20 @@ class Model(Enum):
     EVV = 'EVV'
     VVV = 'VVV'
 
+    # Mainly used for 1 group models (multivariate normal)
     X = 'X'
     XII = 'XII'
     XXI = 'XXI'
     XXX = 'XXX'
 
     def n_var_params(self, d, g):
+        """
+        Gives the number of variance parameters for parameterizations of the model.
+
+        :param d: number of dimensions in the data
+        :param g: number of cluster component
+        :return: The number of variance parameters in the corresponding Gaussian mixture model.
+        """
         return {
             Model.E: 1,
             Model.X: 1,
@@ -54,6 +76,17 @@ class Model(Enum):
         }.get(self)
 
     def n_mclust_params(self, d, g, noise=False, equalpro=False):
+        """
+        Gives the number of estimated parameters for parameterizations of the model.
+
+        :param d: number of dimensions in the data
+        :param g: number of cluster components
+        :param noise: A logical variable indicating whether or not the model includes an optional Poisson noise
+        component.
+        :param equalpro: A logical variable indicating whether or not the components in the model are assumed to be
+        present in equal proportion.
+        :return: The number of variance parameters in the corresponding Gaussian mixture model.
+        """
         if g == 0:
             # one noise cluster case
             if not noise:
@@ -69,20 +102,35 @@ class Model(Enum):
 
 
 class MixtureModel:
+    """
+    Abstract class representing a Gaussian finite mixture model.
+    """
     def __init__(self, data, z=None, prior=None):
-        self.model = None
-        self.G = None
-        self.mean = None
-        self.pro = None
+        """
+        Gaussian finite mixture model.
 
+        :param data: data to use for fitting the Gaussian finite mixture model represented by a numpy array, containing
+        n observations, of dimension d.
+        :param z: numpy array with shape (n x G), where n is the number of observations in data, and G the amount of
+        cluster components in the model. index [i,j] indicates the probability that observation i belongs to component
+        j.
+        :param prior: optional prior for mixture model (not yet supported)
+        """
+        # Model type from Model enum.
+        self.model = None
+        self.data = data
+        self.prior = prior
+
+        self.mean = None
         self.variance = None
+        # mixing proportions of model
+        self.pro = None
 
         self.loglik = None
         self.returnCode = None
         self.z = z
 
-        self.data = data
-        self.prior = prior
+        self.G = None
         self.n = len(data)
         if data.ndim == 1:
             self.d = 1
@@ -90,15 +138,34 @@ class MixtureModel:
             self.d = data.shape[1]
 
     def bic(self, noise=False, equalpro=False):
+        """
+        Computes the BIC (Bayesian Information Criterion) for this mixture model.
+
+        :param noise: A logical variable indicating whether or not the model includes an optional Poisson noise
+        component. The default is to assume no noise component.
+        :param equalpro: A logical variable indicating whether or not the components in the model are assumed to be
+        present in equal proportion. The default is to assume unequal mixing proportions.
+        :return: The BIC or Bayesian Information Criterion for the given input arguments.
+        """
         if self.returnCode is None:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         nparams = self.model.n_mclust_params(self.d, self.G, noise, equalpro)
         return 2 * self.loglik - nparams * log(self.n)
 
     def fit(self):
+        """
+        Fits this mixture model on self.data.
+
+        :return: returnCode of success of model.
+        """
         raise AbstractMethodError()
 
     def classify(self):
+        """
+        Gives the allocation of observations in self.data to which cluster component.
+
+        :return: numpy array containing index to which cluster component observation i belongs.
+        """
         if self.returnCode is None:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         elif self.returnCode != 0:
