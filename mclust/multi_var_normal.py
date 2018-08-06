@@ -2,6 +2,7 @@ from mclust.fortran import mclust
 
 from mclust.exceptions import *
 from mclust.models import Model, MixtureModel
+from mclust.em import MEE, MEEII, MEEEI, MEEEE
 from mclust.utility import round_sig
 from mclust.variance import *
 
@@ -32,7 +33,7 @@ class MVNX(MVN):
             raise DimensionError(f"Data must be one dimensional, actual dimension {self.data.ndim}")
         self.model = Model.X
         self.G = 1
-        self.pro = 1
+        self.pro = np.array([1], float, order='F')
 
     def fit(self):
         super().fit()
@@ -44,9 +45,16 @@ class MVNX(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceSigmasq(self.d, self.G, np.array(sigmasq))
-        self.mean = np.array(self.mean).transpose()
+        self.mean = np.array(self.mean)
 
         return self._check_output()
+
+    def component_density(self, new_data=None, logarithm=False):
+        # density calculation is based on e-step, multivariate normals don't have an e-step
+        # therefor a dummy MEE object (with e-step) is used to calculate component densities
+        em_model = MEE(self.data, self.z)
+        self.copy_onto(em_model)
+        return em_model.component_density(new_data, logarithm=logarithm)
 
 
 class MVNXII(MVN):
@@ -59,7 +67,7 @@ class MVNXII(MVN):
     def fit(self):
         super().fit()
         self.G = 1
-        self.pro = 1
+        self.pro = np.array([1], float, order='F')
 
         self.mean = np.zeros(self.d, float, order='F')
         sigmasq = np.array(0, float, order='F')
@@ -72,9 +80,16 @@ class MVNXII(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
-        self.mean = np.array([self.mean]).transpose()
+        self.mean = np.array([self.mean])
 
         return self._check_output()
+
+    def component_density(self, new_data=None, logarithm=False):
+        # density calculation is based on e-step, multivariate normals don't have an e-step
+        # therefor a dummy MEEII object (with e-step) is used to calculate component densities
+        em_model = MEEII(self.data, self.z)
+        self.copy_onto(em_model)
+        return em_model.component_density(new_data, logarithm=logarithm)
 
 
 class MVNXXI(MVN):
@@ -87,7 +102,7 @@ class MVNXXI(MVN):
     def fit(self):
         super().fit()
         self.G = 1
-        self.pro = 1
+        self.pro = np.array([1], float, order='F')
 
         self.mean = np.zeros(self.d, float, order='F')
         scale = np.array(0, float, order='F')
@@ -100,11 +115,17 @@ class MVNXXI(MVN):
         else:
             raise NotImplementedError()
 
-        shape = np.identity(self.d, float) * shape
         self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
-        self.mean = np.array([self.mean]).transpose()
+        self.mean = np.array([self.mean])
 
         return self._check_output()
+
+    def component_density(self, new_data=None, logarithm=False):
+        # density calculation is based on e-step, multivariate normals don't have an e-step
+        # therefor a dummy MEEEI object (with e-step) is used to calculate component densities
+        em_model = MEEEI(self.data, self.z)
+        self.copy_onto(em_model)
+        return em_model.component_density(new_data, logarithm=logarithm)
 
 
 class MVNXXX(MVN):
@@ -117,7 +138,7 @@ class MVNXXX(MVN):
     def fit(self):
         super().fit()
         self.G = 1
-        self.pro = 1
+        self.pro = np.array([1], float, order='F')
 
         self.mean = np.zeros(self.d, float, order='F')
         cholsigma = np.zeros(self.d * self.d).reshape(self.d, self.d, order='F')
@@ -130,9 +151,16 @@ class MVNXXX(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
-        self.mean = np.array([self.mean]).transpose()
+        self.mean = np.array([self.mean])
 
         return self._check_output()
+
+    def component_density(self, new_data=None, logarithm=False):
+        # density calculation is based on e-step, multivariate normals don't have an e-step
+        # therefor a dummy MEEEE object (with e-step) is used to calculate component densities
+        em_model = MEEEE(self.data, self.z)
+        self.copy_onto(em_model)
+        return em_model.component_density(new_data, logarithm=logarithm)
 
 
 def model_to_mvn(model, data, prior=None):

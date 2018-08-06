@@ -8,7 +8,6 @@ from mclust.control import EMControl
 from mclust.models import Model, MixtureModel
 from mclust.utility import round_sig, mclust_map
 from mclust.fortran import mclust, mclustaddson
-from mclust.multi_var_normal import MVNX
 from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposition
 
 
@@ -148,28 +147,6 @@ class ME(MixtureModel):
         self.returnCode = model.returnCode
         return model.z
 
-    def density(self, new_data=None, logarithm=False):
-        if self.pro is None:
-            raise ModelError("mixing proportions must be supplied")
-        cden = self.component_density(new_data, logarithm=True)
-        # TODO implement vinv/noise
-        if self.G > 1:
-            pro = np.copy(self.pro)
-            if np.any(self.pro == 0):
-                pro = pro[self.pro != 0]
-                cden = cden[:, self.pro != 0]
-            cden = cden + np.log(pro)
-
-        maxlog = np.amax(cden, 1)
-        cden = (cden.transpose() - maxlog).transpose()
-        den = np.log(np.sum(np.exp(cden), 1)) + maxlog
-
-        # TODO implement vinv/noise
-        if not logarithm:
-            den = np.exp(den)
-
-        return den
-
 
 class ME1Dimensional(ME):
     def __init__(self, data, z, prior=None, control=EMControl()):
@@ -288,30 +265,6 @@ class MEV(ME1Dimensional):
                         self.pro)
         else:
             raise NotImplementedError("prior not yet supported")
-
-
-# TODO delete or implemnet mstep/estep?
-class MEX(ME):
-    def __init__(self, data, z, prior=None, control=EMControl()):
-        super().__init__(data, z, prior, control)
-        if self.data.ndim != 1:
-            raise ModelError("data must be 1 dimensional")
-        self.model = Model.X
-
-    def fit(self, control=None, vinv=None):
-        if self.z.shape[0] != self.n:
-            raise ModelError("row dimension of z should be equal length of the data")
-
-        self.G = self.z.shape[1]
-
-        mvn = MVNX(self.data, self.prior)
-        self.prior = self.prior
-        self.returnCode = mvn.fit()
-        self.loglik = mvn.loglik
-        self.mean = mvn.mean
-        self.variance = mvn.variance
-        self.pro = mvn.pro
-        return self.returnCode
 
 
 class MEMultiDimensional(ME):

@@ -30,8 +30,10 @@ class TestMclust(TestCase):
 
             self.assertTrue(np.allclose(expected, dens), f'{model} with {group} groups does not correspond')
 
-    def single_dimensional_test_template(self, model):
-        for group in self.groups:
+    def single_dimensional_test_template(self, model, groups=None):
+        if groups is None:
+            groups = self.groups
+        for group in groups:
             expected = apply_resource('test_data', f'simulated1d-{model.value}-{group}-density.csv',
                                       lambda f: np.genfromtxt(f, delimiter=','))
             z = apply_resource('test_data', f'z-diabetes-{group}.csv',
@@ -92,6 +94,9 @@ class TestMclust(TestCase):
 
     def test_MEEEE(self):
         self.multi_dimensional_test_template(Model.EEE)
+
+    def test_MVNX(self):
+        self.single_dimensional_test_template(Model.E, [1])
 
     def test_MVNXII(self):
         self.multi_dimensional_test_template(Model.EII, [1])

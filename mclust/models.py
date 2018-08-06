@@ -178,7 +178,26 @@ class MixtureModel:
         raise AbstractMethodError()
 
     def density(self, new_data=None, logarithm=False):
-        raise AbstractMethodError()
+        if self.pro is None:
+            raise ModelError("mixing proportions must be supplied")
+        cden = self.component_density(new_data, logarithm=True)
+        # TODO implement vinv/noise
+        if self.G > 1:
+            pro = np.copy(self.pro)
+            if np.any(self.pro == 0):
+                pro = pro[self.pro != 0]
+                cden = cden[:, self.pro != 0]
+            cden = cden + np.log(pro)
+
+        maxlog = np.amax(cden, 1)
+        cden = (cden.transpose() - maxlog).transpose()
+        den = np.log(np.sum(np.exp(cden), 1)) + maxlog
+
+        # TODO implement vinv/noise
+        if not logarithm:
+            den = np.exp(den)
+
+        return den
 
     def __deepcopy__(self, memodict={}):
         new = type(self)(self.data, np.copy(self.z, order='F'))
@@ -194,6 +213,23 @@ class MixtureModel:
         new.prior = self.prior
 
         return new
+
+    def copy_onto(self, model):
+        model.model = self.model
+        model.data = self.data
+        model.prior = self.prior
+
+        model.mean = self.mean
+        model.variance = self.variance
+        model.pro = self.pro
+
+        model.loglik = self.loglik
+        model.returnCode = self.returnCode
+        model.z = self.z
+
+        model.G = self.G
+        model.n = self.n
+        model.d = self.d
 
     def __str__(self):
         return f"modelname: {self.model}\n" \

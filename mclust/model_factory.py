@@ -10,7 +10,7 @@ class ModelFactory:
         model = {
             Model.E: [MVNX, MEE],
             Model.V: [MVNX, MEV],
-            Model.X: [MVNX, MEX],
+            Model.X: [MVNX, MEE],
             Model.EII: [MVNXII, MEEII],
             Model.VII: [MVNXII, MEVII],
             Model.EEI: [MVNXXI, MEEEI],
