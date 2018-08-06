@@ -2,7 +2,6 @@ from unittest import TestCase
 import numpy as np
 
 from mclust.em import *
-from mclust.density import Dens, CDens
 from mclust.model_factory import ModelFactory, Model
 
 from .utility import apply_resource
