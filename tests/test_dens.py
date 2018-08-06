@@ -2,7 +2,7 @@ from unittest import TestCase
 import numpy as np
 
 from mclust.em import *
-from mclust.density import Dens
+from mclust.density import Dens, CDens
 from mclust.model_factory import ModelFactory, Model
 
 from .utility import apply_resource
@@ -14,10 +14,12 @@ class TestMclust(TestCase):
                                        lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
         self.simulated1d = apply_resource('data_sets', 'simulated1d.csv',
                                           lambda f: np.genfromtxt(f, delimiter=','))
-        self.groups = [1, 2, 3, 4, 5]
+        self.groups = [2, 3, 4, 5]
 
-    def multi_dimensional_test_template(self, model):
-        for group in self.groups:
+    def multi_dimensional_test_template(self, model, groups=None):
+        if groups is None:
+            groups = self.groups
+        for group in groups:
             expected = apply_resource('test_data', f'diabetes-{model.value}-{group}-density.csv',
                                       lambda f: np.genfromtxt(f, delimiter=','))
 
@@ -90,4 +92,20 @@ class TestMclust(TestCase):
 
     def test_MEEEE(self):
         self.multi_dimensional_test_template(Model.EEE)
+
+    def test_MVNXII(self):
+        self.multi_dimensional_test_template(Model.EII, [1])
+
+    def test_MVNXXI(self):
+        self.multi_dimensional_test_template(Model.EEI, [1])
+
+    def test_MVNXXX(self):
+        self.multi_dimensional_test_template(Model.EEE, [1])
+
+    def test_CDens(self):
+        model = ModelFactory.create(self.diabetes, Model.VVV, groups=2)
+        model.fit()
+        cdens = model.component_density(logarithm=True)
+
+
 

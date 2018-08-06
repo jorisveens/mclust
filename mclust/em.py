@@ -1,3 +1,4 @@
+import copy
 import numpy as np
 import warnings
 from math import sqrt
@@ -124,6 +125,50 @@ class ME(MixtureModel):
             self.m_step()
 
         return mclust_map(self.z)
+
+    def component_density(self, new_data=None, logarithm=False):
+        model = copy.deepcopy(self)
+        if new_data is not None:
+            model.data = new_data
+            model.n = new_data.shape[0]
+
+        if model.mean is None or model.pro is None or model.variance is None:
+            warnings.warn("parameters are missing")
+            self.returnCode = 9
+            return None
+
+        model.pro = np.array([-1], float, order='F')
+        model.e_step()
+
+        if model.returnCode or model.returnCode == -9:
+            return None
+        elif model.returnCode == 0:
+            if not logarithm:
+                model.z = np.exp(model.z)
+        self.returnCode = model.returnCode
+        return model.z
+
+    def density(self, new_data=None, logarithm=False):
+        if self.pro is None:
+            raise ModelError("mixing proportions must be supplied")
+        cden = self.component_density(new_data, logarithm=True)
+        # TODO implement vinv/noise
+        if self.G > 1:
+            pro = np.copy(self.pro)
+            if np.any(self.pro == 0):
+                pro = pro[self.pro != 0]
+                cden = cden[:, self.pro != 0]
+            cden = cden + np.log(pro)
+
+        maxlog = np.amax(cden, 1)
+        cden = (cden.transpose() - maxlog).transpose()
+        den = np.log(np.sum(np.exp(cden), 1)) + maxlog
+
+        # TODO implement vinv/noise
+        if not logarithm:
+            den = np.exp(den)
+
+        return den
 
 
 class ME1Dimensional(ME):
@@ -301,26 +346,23 @@ class MEMultiDimensional(ME):
             self.returnCode = 9
             return
 
-        self.pro = self.pro / np.sum(self.pro)
-        l = len(self.pro)
+        # For density estimation mixing proportions are not used
+        if self.pro[0] != -1:
+            self.pro = self.pro / np.sum(self.pro)
 
         # TODO implemenmt vinv
         k = self.G
 
         # not all models have cholsigma, so this needs to be calculated
-        cholsigma = self.variance.get_covariance()
-        # for group in range(self.G):
-        #     cholsigma[group] = np.linalg.cholesky(cholsigma[group])
-        cholsigma = cholsigma.transpose(2, 1, 0)
+        variance = self.variance.get_covariance().transpose(2, 1, 0)
 
         w = np.zeros(self.d, float, order='F')
         self.z = np.zeros((self.n, k), float, order='F')
 
-        # TODO test setting chol to 0 without doing cholesky decomposition
         mclust.esvvv(False,
                      self.data,
                      self.mean.transpose(),
-                     cholsigma,
+                     variance,
                      self.pro,
                      self.G,
                      -1 if self.vinv is None else self.vinv,

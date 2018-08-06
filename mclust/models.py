@@ -101,6 +101,7 @@ class Model(Enum):
         return nparams
 
 
+# TODO add vinv
 class MixtureModel:
     """
     Abstract class representing a Gaussian finite mixture model.
@@ -173,8 +174,14 @@ class MixtureModel:
         if self.G == 1:
             return np.zeros(self.n)
 
+    def component_density(self, new_data=None, logarithm=False):
+        raise AbstractMethodError()
+
+    def density(self, new_data=None, logarithm=False):
+        raise AbstractMethodError()
+
     def __deepcopy__(self, memodict={}):
-        new = type(self)(self.data, self.z.copy(order='F'))
+        new = type(self)(self.data, np.copy(self.z, order='F'))
         new.G = copy.deepcopy(self.G)
         new.mean = copy.deepcopy(self.mean)
         new.pro = copy.deepcopy(self.pro)
