@@ -25,7 +25,6 @@ class TestMclust(TestCase):
             mod = ModelFactory.create(self.diabetes, model, groups=group)
             mod.fit()
             dens = mod.density(logarithm=True)
-            # dens = Dens(mod, logarithm=True).den
 
             self.assertTrue(np.allclose(expected, dens), f'{model} with {group} groups does not correspond')
 
@@ -35,14 +34,17 @@ class TestMclust(TestCase):
         for group in groups:
             expected = apply_resource('test_data', f'simulated1d-{model.value}-{group}-density.csv',
                                       lambda f: np.genfromtxt(f, delimiter=','))
-            z = apply_resource('test_data', f'z-diabetes-{group}.csv',
-                               lambda f: np.asfortranarray(np.genfromtxt(f, delimiter=',')))
 
-            mod = ModelFactory.create(self.simulated1d, model, z=z)
+            if group != 1:
+                z = apply_resource('test_data', f'z-diabetes-{group}.csv',
+                                   lambda f: np.asfortranarray(np.genfromtxt(f, delimiter=',')))
+                mod = ModelFactory.create(self.simulated1d, model, z=z)
+            else:
+                mod = ModelFactory.create(self.simulated1d, model, groups=1)
+
             mod.fit()
 
             dens = mod.density(logarithm=True)
-            # dens = Dens(mod, logarithm=True).den
 
             self.assertTrue(np.allclose(expected, dens), f'{model} with {group} groups does not correspond')
 

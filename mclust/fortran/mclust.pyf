@@ -100,15 +100,15 @@ python module mclust ! in
             double precision dimension(*) :: d
         end subroutine wardsw
         subroutine es1e(x,mu,sigsq,pro,n,g,vinv,hood,z) ! in :mclust:mclust.f
-            double precision dimension(*) :: x
-            double precision dimension(*) :: mu
-            double precision :: sigsq
-            double precision dimension(*) :: pro
+            double precision dimension(*), intent(in) :: x
+            double precision dimension(*), intent(in) :: mu
+            double precision, intent(in) :: sigsq
+            double precision dimension(*), intent(in) :: pro
             integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
-            integer :: g
-            double precision :: vinv
-            double precision :: hood
-            double precision dimension(n,*) :: z
+            integer, intent(in) :: g
+            double precision, intent(in) :: vinv
+            double precision, intent(inout) :: hood
+            double precision dimension(n,*), intent(inout) :: z
         end subroutine es1e
         subroutine hc1e(x,n,ic,ng,ns,nd,d) ! in :mclust:mclust.f
             double precision dimension(*) :: x
@@ -578,15 +578,15 @@ python module mclust ! in
             double precision dimension(*) :: pro
         end subroutine msevip
         subroutine es1v(x,mu,sigsq,pro,n,g,vinv,hood,z) ! in :mclust:mclust.f
-            double precision dimension(*) :: x
-            double precision dimension(*) :: mu
-            double precision dimension(*) :: sigsq
-            double precision dimension(*) :: pro
+            double precision dimension(*), intent(in) :: x
+            double precision dimension(*), intent(in) :: mu
+            double precision dimension(*), intent(in) :: sigsq
+            double precision dimension(*), intent(in) :: pro
             integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
-            integer :: g
-            double precision :: vinv
-            double precision :: hood
-            double precision dimension(n,*) :: z
+            integer, intent(in) :: g
+            double precision, intent(in) :: vinv
+            double precision, intent(inout) :: hood
+            double precision dimension(n,*), intent(inout) :: z
         end subroutine es1v
         subroutine hc1v(x,n,ic,ng,ns,alpha,nd,d) ! in :mclust:mclust.f
             double precision dimension(*) :: x

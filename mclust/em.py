@@ -13,8 +13,7 @@ from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposi
 
 # TODO implement vinv and prior
 # TODO refactor decomposition variance models to include check for invalid elements
-# FIXME estep 1D models
-
+# CONTINUE estep 1D models
 
 class ME(MixtureModel):
     def __init__(self, data, z, prior=None, control=EMControl()):
@@ -147,6 +146,17 @@ class ME(MixtureModel):
         self.returnCode = model.returnCode
         return model.z
 
+    def _check_parameters(self):
+        if self.pro is None or np.any(np.isnan(self.pro)) or \
+                self.mean is None or np.any(np.isnan(self.mean)) or \
+                self.variance is None or np.any(np.isnan(self.variance.get_covariance())):
+            warnings.warn("parameters are missing")
+            self.z = np.full((self.n, self.d), float('nan'))
+            self.loglik = float('nan')
+            self.returnCode = 9
+            return 9
+        return 0
+
 
 class ME1Dimensional(ME):
     def __init__(self, data, z, prior=None, control=EMControl()):
@@ -222,6 +232,47 @@ class MEE(ME1Dimensional):
         else:
             raise NotImplementedError("prior not yet supported")
 
+    def e_step(self):
+        if self._check_parameters() != 0:
+            return self.returnCode
+
+        if not isinstance(self.variance, VarianceSigmasq):
+            warnings.warn("incorrect variance parameter")
+            self.returnCode = -1
+            return self.returnCode
+
+        if self.pro[0] != -1:
+            self.pro = self.pro / np.sum(self.pro)
+
+            # TODO implement vinv/noise
+            noise = len(self.pro) == self.G + 1
+            if not noise:
+                if len(self.pro) != self.G:
+                    raise ModelError("pro impoperly specified")
+                k = self.G
+            else:
+                k = self.G + 1
+        else:
+            k = self.G
+
+        self.z = np.zeros((self.n, k), float, order='F')
+        mclust.es1e(self.data,
+                    self.mean.transpose().flatten(),
+                    self.variance.sigmasq[0],
+                    self.pro,
+                    self.G,
+                    -1.0 if self.vinv is None else self.vinv,
+                    self.loglik,
+                    self.z)
+
+        if self.loglik > round_sig(np.finfo(float).max, 6):
+            warnings.warn("cannot compute E-step")
+            self.loglik = None
+            self.returnCode = -1
+        else:
+            self.returnCode = 0
+        return self.returnCode
+
 
 class MEV(ME1Dimensional):
     def __init__(self, data, z, prior=None, control=EMControl()):
@@ -266,6 +317,47 @@ class MEV(ME1Dimensional):
         else:
             raise NotImplementedError("prior not yet supported")
 
+    def e_step(self):
+        if self._check_parameters() != 0:
+            return self.returnCode
+
+        if not isinstance(self.variance, VarianceSigmasq):
+            warnings.warn("incorrect variance parameter")
+            self.returnCode = -1
+            return self.returnCode
+
+        if self.pro[0] != -1:
+            self.pro = self.pro / np.sum(self.pro)
+
+            # TODO implement vinv/noise
+            noise = len(self.pro) == self.G + 1
+            if not noise:
+                if len(self.pro) != self.G:
+                    raise ModelError("pro impoperly specified")
+                k = self.G
+            else:
+                k = self.G + 1
+        else:
+            k = self.G
+
+        self.z = np.zeros((self.n, k), float, order='F')
+        mclust.es1v(self.data,
+                    self.mean.transpose().flatten(),
+                    self.variance.sigmasq,
+                    self.pro,
+                    self.G,
+                    -1.0 if self.vinv is None else self.vinv,
+                    self.loglik,
+                    self.z)
+
+        if self.loglik > round_sig(np.finfo(float).max, 6):
+            warnings.warn("cannot compute E-step")
+            self.loglik = None
+            self.returnCode = -1
+        else:
+            self.returnCode = 0
+        return self.returnCode
+
 
 class MEMultiDimensional(ME):
     def __init__(self, data, z, prior=None, control=EMControl()):
@@ -290,13 +382,7 @@ class MEMultiDimensional(ME):
         self.returnCode = 0
 
     def e_step(self):
-        if self.pro is None or np.any(np.isnan(self.pro)) or \
-                self.mean is None or np.any(np.isnan(self.mean)) or \
-                self.variance is None or np.any(np.isnan(self.variance.get_covariance())):
-            warnings.warn("parameters are missing")
-            self.z = np.full((self.n, self.p), float('nan'))
-            self.loglik = float('nan')
-            self.returnCode = 9
+        if self._check_parameters() != 0:
             return
 
         # For density estimation mixing proportions are not used
@@ -338,6 +424,8 @@ class MEMultiDimensional(ME):
             self.returnCode = -1
         else:
             self.returnCode = 0
+
+        return self.returnCode
 
 
 class MEEII(MEMultiDimensional):
@@ -1357,14 +1445,3 @@ class MEVVV(MEMultiDimensional):
         self.mean = self.mean.transpose()
         cholsigma = cholsigma.transpose((2, 0, 1))
         self.variance = VarianceCholesky(self.d, self.G, cholsigma)
-
-
-def model_to_me(model, z, data, prior=None, control=EMControl()):
-    mod = {
-        Model.E: MEE,
-        Model.V: MEV,
-        Model.X: MEX,
-        Model.VVV: MEVVV,
-        model.EEE: MEEEE
-    }.get(model)
-    return mod(data, z, prior, control)

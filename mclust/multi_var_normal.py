@@ -161,16 +161,3 @@ class MVNXXX(MVN):
         em_model = MEEEE(self.data, self.z)
         self.copy_onto(em_model)
         return em_model.component_density(new_data, logarithm=logarithm)
-
-
-def model_to_mvn(model, data, prior=None):
-    mod = {
-        Model.X: MVNX,
-        Model.E: MVNX,
-        Model.V: MVNX,
-        Model.EII: MVNXII,
-        Model.VVV: MVNXXX,
-        Model.EEE: MVNXXX
-    }.get(model)
-    return mod(data, prior=prior)
-
