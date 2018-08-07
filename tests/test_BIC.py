@@ -16,7 +16,7 @@ def apply_resource(directory, file, func):
         return func(f)
 
 
-class TestMVN(unittest.TestCase):
+class TestBIC(unittest.TestCase):
     test_data = np.array([1,2,3,4,15,16,17,18])
     test_data_2d = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)])
 

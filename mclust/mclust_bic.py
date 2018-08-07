@@ -77,7 +77,6 @@ class MclustBIC:
             if self.d == 1:
                 self.models = [Model.E, Model.V]
             else:
-                # TODO fill out modelname selection
                 self.models = [Model.EII, Model.VII, Model.EEI, Model.VEI,
                                Model.EVI, Model.VVI, Model.EEE, Model.EVE,
                                Model.VEE, Model.VVE, Model.EEV, Model.VEV,

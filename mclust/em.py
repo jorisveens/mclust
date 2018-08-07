@@ -13,7 +13,6 @@ from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposi
 
 # TODO implement vinv and prior
 # TODO refactor decomposition variance models to include check for invalid elements
-# CONTINUE estep 1D models
 
 class ME(MixtureModel):
     def __init__(self, data, z, prior=None, control=EMControl()):
