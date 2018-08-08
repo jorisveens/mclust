@@ -1,7 +1,7 @@
 import warnings
 
 from mclust.control import EMControl
-from mclust.mclust_bic import MclustBIC
+from mclust.bic import MclustBIC
 
 from mclust.models import Model, MixtureModel
 
@@ -21,9 +21,9 @@ class Mclust(MixtureModel):
         model = bic.pick_best_model()
         if model is None:
             return None
-        if model.G == max(self.groups):
+        if model.g == max(self.groups):
             warnings.warn("optimal number of clusters occurs at max choice")
-        elif model.G == min(self.groups):
+        elif model.g == min(self.groups):
             warnings.warn("optimal number of clusters occurs at min choice")
 
         self.__dict__.update(model.__dict__.copy())

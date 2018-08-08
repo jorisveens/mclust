@@ -1,18 +1,11 @@
 import unittest
 import json
-import pkg_resources
-import numpy as np
+from .utility import apply_resource
 
 from mclust.utility import qclass, mclust_unmap
 from mclust.em import *
 
 resource_package = 'mclust'
-
-
-def apply_resource(directory, file, func):
-    resource_path = '/'.join(('resources', directory, file))
-    with pkg_resources.resource_stream(resource_package, resource_path) as f:
-        return func(f)
 
 
 def clean_json(data):

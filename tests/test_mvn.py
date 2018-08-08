@@ -4,7 +4,7 @@ import numpy as np
 from mclust.multi_var_normal import *
 
 
-class TestMVNXXI(TestCase):
+class TestMVN(TestCase):
     test_data_1d = np.array([1,2,3,4,15,16,17,18])
     test_data_2d = (np.arange(24).reshape(3, 8) + 1).transpose()
     test_data = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)])

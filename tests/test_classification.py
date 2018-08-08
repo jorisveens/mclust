@@ -1,7 +1,8 @@
 from unittest import TestCase
 import numpy as np
 
-from mclust.mclust_da import MclustDA, EDDA, DiscriminantAnalysis
+from mclust.classification import MclustDA, EDDA, DiscriminantAnalysis
+from mclust.models import Model
 from mclust.exceptions import ModelError
 
 from .utility import apply_resource
@@ -40,9 +41,18 @@ class TestMclust(TestCase):
 
     def test_edda(self):
         model = EDDA(self.diabetes, self.diabets_cls)
+        self.assertEqual(len(model.fitted_models), 3)
+        self.assertEqual(model.fitted_models[0].model, Model.VVV)
+        self.assertEqual(model.fitted_models[1].model, Model.VVV)
+        self.assertEqual(model.fitted_models[2].model, Model.VVV)
 
-        print(model.predict())
-        print(list(model.n))
+        self.assertEqual(model.fitted_models[0].g, 1)
+        self.assertEqual(model.fitted_models[1].g, 1)
+        self.assertEqual(model.fitted_models[2].g, 1)
+
+    def test_edda_prediction(self):
+        model = EDDA(self.diabetes, self.diabets_cls)
+        pred = model.predict()
 
     def test_mclust_da(self):
         model = MclustDA(self.diabetes, self.diabets_cls)

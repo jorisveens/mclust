@@ -27,12 +27,12 @@ class MVN(MixtureModel):
 
 
 class MVNX(MVN):
-    def __init__(self, data, z=None, prior=None):
+    def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 1:
             raise DimensionError(f"Data must be one dimensional, actual dimension {self.data.ndim}")
         self.model = Model.X
-        self.G = 1
+        self.g = 1
         self.pro = np.array([1], float, order='F')
 
     def fit(self):
@@ -44,7 +44,7 @@ class MVNX(MVN):
         else:
             raise NotImplementedError()
 
-        self.variance = VarianceSigmasq(self.d, self.G, np.array(sigmasq))
+        self.variance = VarianceSigmasq(self.d, self.g, np.array(sigmasq))
         self.mean = np.array(self.mean)
 
         return self._check_output()
@@ -58,7 +58,7 @@ class MVNX(MVN):
 
 
 class MVNXII(MVN):
-    def __init__(self, data, z=None, prior=None):
+    def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 2:
             raise DimensionError(f"MVNXII requires two-dimensional data, actual dimension {self.data.ndim}")
@@ -66,7 +66,7 @@ class MVNXII(MVN):
 
     def fit(self):
         super().fit()
-        self.G = 1
+        self.g = 1
         self.pro = np.array([1], float, order='F')
 
         self.mean = np.zeros(self.d, float, order='F')
@@ -79,7 +79,7 @@ class MVNXII(MVN):
         else:
             raise NotImplementedError()
 
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, sigmasq)
         self.mean = np.array([self.mean])
 
         return self._check_output()
@@ -93,7 +93,7 @@ class MVNXII(MVN):
 
 
 class MVNXXI(MVN):
-    def __init__(self, data, z=None, prior=None):
+    def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 2:
             raise DimensionError(f"MVNXXI requires two-dimensional data, actual dimesnion {self.data.ndim}")
@@ -101,7 +101,7 @@ class MVNXXI(MVN):
 
     def fit(self):
         super().fit()
-        self.G = 1
+        self.g = 1
         self.pro = np.array([1], float, order='F')
 
         self.mean = np.zeros(self.d, float, order='F')
@@ -115,7 +115,7 @@ class MVNXXI(MVN):
         else:
             raise NotImplementedError()
 
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape)
         self.mean = np.array([self.mean])
 
         return self._check_output()
@@ -129,7 +129,7 @@ class MVNXXI(MVN):
 
 
 class MVNXXX(MVN):
-    def __init__(self, data, z=None, prior=None):
+    def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 2:
             raise DimensionError(f"MVNXXX requires two-dimensional data, actual dimension: {self.data.ndim}")
@@ -137,7 +137,7 @@ class MVNXXX(MVN):
 
     def fit(self):
         super().fit()
-        self.G = 1
+        self.g = 1
         self.pro = np.array([1], float, order='F')
 
         self.mean = np.zeros(self.d, float, order='F')
@@ -150,7 +150,7 @@ class MVNXXX(MVN):
         else:
             raise NotImplementedError()
 
-        self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
+        self.variance = VarianceCholesky(self.d, self.g, np.array([cholsigma]))
         self.mean = np.array([self.mean])
 
         return self._check_output()

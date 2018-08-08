@@ -7,7 +7,7 @@ from mclust.exceptions import ModelError, AbstractMethodError
 from mclust.control import EMControl, ModelTypes
 from mclust.utility import mclust_unmap
 from mclust.model_factory import ModelFactory
-from mclust.mclust_bic import MclustBIC
+from mclust.bic import MclustBIC
 
 
 class DiscriminantAnalysis:
@@ -15,7 +15,7 @@ class DiscriminantAnalysis:
         if classes is None:
             raise ValueError("class labels (classes) for training data must be provided")
         self.data = data
-        self.n = data.shape[0]
+        n = data.shape[0]
         if data.ndim == 1:
             self.d = 1
         else:
@@ -25,6 +25,7 @@ class DiscriminantAnalysis:
         self.fitted_models = {}
         self.observations = {}
         self.g = {}
+        self.n = {}
 
         if g is None:
             for i in range(self.nclasses):
@@ -37,14 +38,14 @@ class DiscriminantAnalysis:
                 self.g[i] = np.sort(g)
 
         if np.any([np.any(vals <= 0) for vals in self.g.values()]):
-            raise ModelError("all values of G must be positive")
+            raise ModelError("all values of g must be positive")
 
         if models is None:
             if self.d == 1:
                 models = ModelTypes.get_one_dimensional()
             else:
                 models = ModelTypes.get_multi_dimensional()
-        if self.n <= self.d:
+        if n <= self.d:
             models = list(set(ModelTypes.get_multi_dimensional()).intersection(ModelTypes.get_less_observations()))
 
         self.models = models
@@ -52,8 +53,6 @@ class DiscriminantAnalysis:
             self.models = {}
             for i in range(len(self.labels)):
                 self.models[i] = models
-
-        self.n = {}
 
     def predict(self, newdata=None, prior=None):
         """For now corresponds with summary.MclustDA"""
@@ -114,7 +113,7 @@ class EDDA(DiscriminantAnalysis):
             ind = classes == self.labels[l]
             self.fitted_models[l] = copy.deepcopy(best_model)
             self.fitted_models[l].n = np.sum(ind)
-            self.fitted_models[l].G = 1
+            self.fitted_models[l].g = 1
             self.fitted_models[l].pro = np.array([1])
             self.fitted_models[l].mean = np.array([self.fitted_models[l].mean[l]])
             self.fitted_models[l].variance.select_group(l)
@@ -137,9 +136,9 @@ class MclustDA(DiscriminantAnalysis):
                 self.fitted_models[l] = bic.pick_best_model()
 
                 self.observations[l] = np.where(ind)
-                self.g[l] = self.fitted_models[l].G
+                self.g[l] = self.fitted_models[l].g
                 self.n[l] = np.sum(ind)
 
     def df(self):
-        return int(np.sum([(mod.G -1) + mod.G * self.d + mod.model.n_var_params(self.d, mod.G)
+        return int(np.sum([(mod.g -1) + mod.g * self.d + mod.model.n_var_params(self.d, mod.g)
                        for mod in self.fitted_models.values()]))

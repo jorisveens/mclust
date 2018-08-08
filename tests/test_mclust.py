@@ -20,7 +20,7 @@ class TestMclust(TestCase):
         model.fit()
 
         self.assertEqual(model.model, Model.VVV)
-        self.assertEqual(model.G, 3)
+        self.assertEqual(model.g, 3)
         self.assertAlmostEqual(model.loglik, -2303.4955606441354)
 
     def test_predict(self):

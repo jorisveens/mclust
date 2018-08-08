@@ -12,7 +12,6 @@ from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposi
 
 
 # TODO implement vinv and prior
-# TODO refactor decomposition variance models to include check for invalid elements
 
 class ME(MixtureModel):
     def __init__(self, data, z, prior=None, control=EMControl()):
@@ -51,12 +50,12 @@ class ME(MixtureModel):
         if self.returnCode != 0:
             return self.returnCode
 
-        G = self.z.shape[1]
+        g = self.z.shape[1]
         if vinv is not None:
-            G = self.z.shape[1] - 1
+            g = self.z.shape[1] - 1
             if vinv <= 0:
                 vinv = hypvol(self.data, reciprocal=True)
-        self.G = G
+        self.g = g
         self.vinv = vinv
 
         self._me_fortran(control, vinv)
@@ -64,8 +63,8 @@ class ME(MixtureModel):
         return self.returnCode
 
     def m_step(self):
-        if self.G is None:
-            self.G = self.z.shape[1]
+        if self.g is None:
+            self.g = self.z.shape[1]
 
     def e_step(self):
         raise AbstractMethodError()
@@ -80,8 +79,8 @@ class ME(MixtureModel):
         if np.all(self.z == None):
             warnings.warn("z is missing")
             self.variance = None
-            self.pro = np.repeat([None], self.G)
-            self.mean = np.repeat([None], self.G)
+            self.pro = np.repeat([None], self.g)
+            self.mean = np.repeat([None], self.g)
             return 9
 
         if np.any(self.z == None) or np.any(self.z < 0) or np.any(self.z > 1):
@@ -185,7 +184,7 @@ class ME1Dimensional(ME):
             warnings.warn("cannot compute M-step")
             self.pro = self.mean = self.sigmasq = float("nan")
             self.returnCode = -1
-        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, self.sigmasq)
         self.mean = np.array([self.mean]).transpose()
         self.returnCode = 0
         return 0
@@ -197,13 +196,13 @@ class MEE(ME1Dimensional):
         self.model = Model.E
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.g, float, order='F')
         self.sigmasq = np.array(1, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         if self.prior is None:
             mclust.me1e(self.control.equalPro,
                         self.data,
-                        self.G,
+                        self.g,
                         -1.0 if vinv is None else vinv,
                         self.z,
                         self.iterations,
@@ -216,17 +215,17 @@ class MEE(ME1Dimensional):
         else:
             raise NotImplementedError("prior not yet supported")
 
-        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, self.sigmasq)
         self.mean = np.array([self.mean]).transpose()
 
     def _m_step_fortran(self):
-        self.mean = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.g, float, order='F')
         self.sigmasq = np.array(1, float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.ms1e(self.data,
                         self.z,
-                        self.G,
+                        self.g,
                         self.mean,
                         self.sigmasq,
                         self.pro)
@@ -246,22 +245,22 @@ class MEE(ME1Dimensional):
             self.pro = self.pro / np.sum(self.pro)
 
             # TODO implement vinv/noise
-            noise = len(self.pro) == self.G + 1
+            noise = len(self.pro) == self.g + 1
             if not noise:
-                if len(self.pro) != self.G:
+                if len(self.pro) != self.g:
                     raise ModelError("pro impoperly specified")
-                k = self.G
+                k = self.g
             else:
-                k = self.G + 1
+                k = self.g + 1
         else:
-            k = self.G
+            k = self.g
 
         self.z = np.zeros((self.n, k), float, order='F')
         mclust.es1e(self.data,
                     self.mean.transpose().flatten(),
                     self.variance.sigmasq[0],
                     self.pro,
-                    self.G,
+                    self.g,
                     -1.0 if self.vinv is None else self.vinv,
                     self.loglik,
                     self.z)
@@ -281,14 +280,14 @@ class MEV(ME1Dimensional):
         self.model = Model.V
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.G, float, order='F')
-        self.sigmasq = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.g, float, order='F')
+        self.sigmasq = np.zeros(self.g, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
 
         if self.prior is None:
             mclust.me1v(self.control.equalPro,
                         self.data,
-                        self.G,
+                        self.g,
                         -1.0 if vinv is None else vinv,
                         self.z,
                         self.iterations,
@@ -301,17 +300,17 @@ class MEV(ME1Dimensional):
         else:
             raise NotImplementedError("prior not yet supported")
 
-        self.variance = VarianceSigmasq(self.d, self.G, self.sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, self.sigmasq)
         self.mean = np.array([self.mean]).transpose()
 
     def _m_step_fortran(self):
-        self.mean = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.g, float, order='F')
         self.sigmasq = np.array(1, float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.ms1v(self.data,
                         self.z,
-                        self.G,
+                        self.g,
                         self.mean,
                         self.sigmasq,
                         self.pro)
@@ -331,22 +330,22 @@ class MEV(ME1Dimensional):
             self.pro = self.pro / np.sum(self.pro)
 
             # TODO implement vinv/noise
-            noise = len(self.pro) == self.G + 1
+            noise = len(self.pro) == self.g + 1
             if not noise:
-                if len(self.pro) != self.G:
+                if len(self.pro) != self.g:
                     raise ModelError("pro impoperly specified")
-                k = self.G
+                k = self.g
             else:
-                k = self.G + 1
+                k = self.g + 1
         else:
-            k = self.G
+            k = self.g
 
         self.z = np.zeros((self.n, k), float, order='F')
         mclust.es1v(self.data,
                     self.mean.transpose().flatten(),
                     self.variance.sigmasq,
                     self.pro,
-                    self.G,
+                    self.g,
                     -1.0 if self.vinv is None else self.vinv,
                     self.loglik,
                     self.z)
@@ -391,7 +390,7 @@ class MEMultiDimensional(ME):
             self.pro = self.pro / np.sum(self.pro)
 
         # TODO implemenmt vinv
-        k = self.G
+        k = self.g
 
         # not all models have cholsigma, so this needs to be calculated
         variance = self.variance.get_covariance().transpose(2, 1, 0)
@@ -404,7 +403,7 @@ class MEMultiDimensional(ME):
                      self.mean.transpose(),
                      variance,
                      self.pro,
-                     self.G,
+                     self.g,
                      -1 if self.vinv is None else self.vinv,
                      w,
                      self.loglik,
@@ -435,13 +434,13 @@ class MEEII(MEMultiDimensional):
         self.model = Model.EII
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
+        self.mean = np.zeros(self.d * self.g, float).reshape(self.d, self.g, order='F')
         sigmasq = np.array(0, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         if self.prior is None:
             mclust.meeii(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -455,16 +454,16 @@ class MEEII(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, sigmasq)
 
     def _m_step_fortran(self):
-        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
+        self.mean = np.zeros(self.d * self.g, float).reshape(self.d, self.g, order='F')
         sigmasq = np.array(0, float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.mseii(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          self.mean,
                          sigmasq,
                          self.pro)
@@ -472,7 +471,7 @@ class MEEII(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, sigmasq)
 
 
 class MEVII(MEMultiDimensional):
@@ -481,13 +480,13 @@ class MEVII(MEMultiDimensional):
         self.model = Model.VII
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
-        sigmasq = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.d * self.g, float).reshape(self.d, self.g, order='F')
+        sigmasq = np.zeros(self.g, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         if self.prior is None:
             mclust.mevii(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -500,16 +499,16 @@ class MEVII(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, sigmasq)
 
     def _m_step_fortran(self):
-        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
-        sigmasq = np.zeros(self.G, float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.d * self.g, float).reshape(self.d, self.g, order='F')
+        sigmasq = np.zeros(self.g, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.msvii(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          self.mean,
                          sigmasq,
                          self.pro)
@@ -517,7 +516,7 @@ class MEVII(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceSigmasq(self.d, self.G, sigmasq)
+        self.variance = VarianceSigmasq(self.d, self.g, sigmasq)
 
 
 class MEEEI(MEMultiDimensional):
@@ -526,14 +525,14 @@ class MEEEI(MEMultiDimensional):
         self.model = Model.EEI
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.d * self.G, float).reshape(self.d, self.G, order='F')
+        self.mean = np.zeros(self.d * self.g, float).reshape(self.d, self.g, order='F')
         scale = np.array(0, float, order='F')
         shape = np.zeros(self.d, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         if self.prior is None:
             mclust.meeei(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -548,17 +547,17 @@ class MEEEI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape)
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
         shape = np.zeros(self.d, float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.mseei(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          self.mean,
                          scale,
                          shape,
@@ -568,7 +567,7 @@ class MEEEI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape)
 
 
 class MEVEI(MEMultiDimensional):
@@ -579,17 +578,17 @@ class MEVEI(MEMultiDimensional):
         self.errs = np.array(control.tol, float, order='F')
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
         shape = np.zeros(self.d, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
-        scl = np.zeros(self.G, float, order='F')
+        scl = np.zeros(self.g, float, order='F')
         shp = np.zeros(self.d, float, order='F')
-        w = np.zeros((self.d, self.G), float, order='F')
+        w = np.zeros((self.d, self.g), float, order='F')
         if self.prior is None:
             mclust.mevei(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iters,
@@ -609,22 +608,22 @@ class MEVEI(MEMultiDimensional):
         self.iterations = self.iters[0]
         self.err = self.errs[0]
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape)
 
     def _m_step_fortran(self):
         self.iterations = np.array(self.control.itmax[1], np.int32, order='F')
         self.err = np.array(self.control.tol[1], float, order='F')
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
         shape = np.zeros(self.d, float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
-        scl = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
+        scl = np.zeros(self.g, float, order='F')
         shp = np.zeros(self.d, float, order='F')
-        w = np.zeros((self.d, self.G), float, order='F')
+        w = np.zeros((self.d, self.g), float, order='F')
         if self.prior is None:
             mclust.msvei(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          self.iterations,
                          self.err,
                          self.mean,
@@ -639,7 +638,7 @@ class MEVEI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape)
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape)
 
         if self.iterations >= self.control.itmax[1]:
             warnings.warn("inner iteration limit reached")
@@ -659,14 +658,14 @@ class MEEVI(MEMultiDimensional):
         self.model = Model.EVI
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
-        shape = np.zeros((self.d, self.G), float, order='F')
+        shape = np.zeros((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         if self.prior is None:
             mclust.meevi(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -681,17 +680,17 @@ class MEEVI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose())
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
-        shape = np.zeros((self.d, self.G), float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        shape = np.zeros((self.d, self.g), float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.msevi(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          self.mean,
                          scale,
                          shape,
@@ -701,7 +700,7 @@ class MEEVI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose())
 
 
 class MEVVI(MEMultiDimensional):
@@ -710,14 +709,14 @@ class MEVVI(MEMultiDimensional):
         self.model = Model.VVI
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
-        shape = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
+        shape = np.zeros((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         if self.prior is None:
             mclust.mevvi(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -732,17 +731,17 @@ class MEVVI(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose())
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
-        shape = np.zeros((self.d, self.G), float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
+        shape = np.zeros((self.d, self.g), float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.msvvi(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          self.mean,
                          scale,
                          shape,
@@ -752,7 +751,7 @@ class MEVVI(MEMultiDimensional):
             raise NotImplementedError("prior not yet supported")
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose())
 
 
 class MEEEE(MEMultiDimensional):
@@ -761,7 +760,7 @@ class MEEEE(MEMultiDimensional):
         self.model = Model.EEE
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
+        self.mean = np.zeros(self.g * self.d, float).reshape(self.d, self.g, order='F')
         cholsigma = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         w = np.zeros(self.d, float, order='F')
@@ -769,7 +768,7 @@ class MEEEE(MEMultiDimensional):
         if self.prior is None:
             mclust.meeee(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -784,17 +783,17 @@ class MEEEE(MEMultiDimensional):
             return NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
+        self.variance = VarianceCholesky(self.d, self.g, np.array([cholsigma]))
 
     def _m_step_fortran(self):
         w = np.zeros(self.d, float, order='F')
-        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
+        self.mean = np.zeros(self.g * self.d, float).reshape(self.d, self.g, order='F')
         cholsigma = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.mseee(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          w,
                          self.mean,
                          cholsigma,
@@ -804,7 +803,7 @@ class MEEEE(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceCholesky(self.d, self.G, np.array([cholsigma]))
+        self.variance = VarianceCholesky(self.d, self.g, np.array([cholsigma]))
 
 
 class MEEVE(MEMultiDimensional):
@@ -819,16 +818,16 @@ class MEEVE(MEMultiDimensional):
         self.info = np.array(0, np.int32, order='F')
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         orientation = np.asfortranarray(np.identity(self.d, float))
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
-        shape = np.ones((self.d, self.G), float, order='F')
+        shape = np.ones((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
 
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
 
         if self.prior is None:
             mclustaddson.meeve(self.data,
@@ -860,21 +859,21 @@ class MEEVE(MEMultiDimensional):
         self.iterations = self.iterout
         self.err = self.errout
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose(), orientation.transpose())
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         orientation = np.asfortranarray(np.identity(self.d, float))
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
-        shape = np.ones((self.d, self.G), float, order='F')
+        shape = np.ones((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         self.iterin = np.array(self.control.itmax[1], np.int32, order='F')
         self.errin = np.array(self.control.tol[1], np.int32, order='F')
 
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         if self.prior is None:
             mclustaddson.mseve(self.data,
                                self.z,
@@ -896,7 +895,7 @@ class MEEVE(MEMultiDimensional):
             raise NotImplementedError("prior not yet supported")
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose(), orientation.transpose())
 
     def _handle_output(self):
         if self.info:
@@ -927,15 +926,15 @@ class MEVEE(MEMultiDimensional):
         self.info = np.array(0, np.int32, order='F')
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         c = np.zeros((self.d, self.d), float, order='F')
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
         shape = np.zeros(self.d, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         if self.prior is None:
             mclustaddson.mevee(self.data,
                                self.z,
@@ -972,7 +971,7 @@ class MEVEE(MEMultiDimensional):
         else:
             _, _, orientation = np.linalg.svd(c)
 
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape, orientation.transpose())
 
     def _handle_output(self):
         if self.info:
@@ -991,14 +990,14 @@ class MEVEE(MEMultiDimensional):
         return ret
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         c = np.zeros((self.d, self.d), float, order='F')
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
-        scale = np.ones(self.G, float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
+        scale = np.ones(self.g, float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         self.iterin = np.array(self.control.itmax[1], np.int32, order='F')
         self.errin = np.array(self.control.tol[1], np.int32, order='F')
 
@@ -1024,7 +1023,7 @@ class MEVEE(MEMultiDimensional):
         _, shape, orientation = np.linalg.svd(c)
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape, orientation.transpose())
 
 
 class MEVVE(MEMultiDimensional):
@@ -1039,15 +1038,15 @@ class MEVVE(MEMultiDimensional):
         self.info = np.array(0, np.int32, order='F')
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         orientation = np.asfortranarray(np.identity(self.d, float))
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
-        scale = np.ones(self.G, float, order='F')
-        shape = np.ones((self.d, self.G), float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
+        scale = np.ones(self.g, float, order='F')
+        shape = np.ones((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         if self.prior is None:
             mclustaddson.mevve(self.data,
                                self.z,
@@ -1077,7 +1076,7 @@ class MEVVE(MEMultiDimensional):
 
         self.iterations = self.iterout
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose(), orientation.transpose())
 
     def _handle_output(self):
         if self.info:
@@ -1096,15 +1095,15 @@ class MEVVE(MEMultiDimensional):
         return ret
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
         orientation = np.asfortranarray(np.identity(self.d, float))
-        scale = np.ones(self.G, float, order='F')
-        shape = np.ones((self.d, self.G), float, order='F')
+        scale = np.ones(self.g, float, order='F')
+        shape = np.ones((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         self.iterin = np.array(self.control.itmax[1], np.int32, order='F')
         self.errin = np.array(self.control.tol[1], np.int32, order='F')
 
@@ -1129,7 +1128,7 @@ class MEVVE(MEMultiDimensional):
             raise NotImplementedError("prior not yet supported")
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(), orientation.transpose())
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose(), orientation.transpose())
 
 
 class MEEEV(MEMultiDimensional):
@@ -1140,18 +1139,18 @@ class MEEEV(MEMultiDimensional):
     def _me_fortran(self, control, vinv):
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+                             self.d + self.g), np.int32, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
         shape = np.zeros(self.d, float, order='F')
-        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
+        orientation = np.zeros((self.d, self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         w = np.zeros(lwork, float, order='F')
         s = np.zeros(self.d, float, order='F')
         if self.prior is None:
             mclust.meeev(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -1170,22 +1169,22 @@ class MEEEV(MEMultiDimensional):
             raise NotImplementedError("prior not yet supported")
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape, orientation.transpose((2, 1, 0)))
 
     def _m_step_fortran(self):
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
-        self.mean = np.zeros((self.d, self.G), float, order='F')
+                             self.d + self.g), np.int32, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
         scale = np.array(0, float, order='F')
         shape = np.zeros(self.d, float, order='F')
-        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        orientation = np.zeros((self.d, self.d, self.g), float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         w = np.zeros(lwork, float, order='F')
         if self.prior is None:
             mclust.mseev(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          w,
                          lwork,
                          self.mean,
@@ -1198,7 +1197,7 @@ class MEEEV(MEMultiDimensional):
             raise NotImplementedError("prior not yet supported")
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape, orientation.transpose((2, 1, 0)))
 
 
 class MEVEV(MEMultiDimensional):
@@ -1213,18 +1212,18 @@ class MEVEV(MEMultiDimensional):
     def _me_fortran(self, control, vinv):
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
+                             self.d + self.g), np.int32, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
         shape = np.zeros(self.d, float, order='F')
-        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
+        orientation = np.zeros((self.d, self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         w = np.zeros(lwork, float, order='F')
         s = np.zeros(self.d, float, order='F')
         if self.prior is None:
             mclust.mevev(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iters,
@@ -1245,7 +1244,7 @@ class MEVEV(MEMultiDimensional):
         self.iterations = self.iters[0]
         self.info = lwork
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape, orientation.transpose((2, 1, 0)))
 
     def _handle_output(self):
         if self.info:
@@ -1266,19 +1265,19 @@ class MEVEV(MEMultiDimensional):
     def _m_step_fortran(self):
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         w = np.zeros(lwork, float, order='F')
         self.iterations = self.control.itmax[1]
         self.err = self.control.tol[1]
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
         shape = np.zeros(self.d, float, order='F')
-        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        orientation = np.zeros((self.d, self.d, self.g), float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         if self.prior is None:
             mclust.msvev(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          w,
                          lwork,
                          self.iterations,
@@ -1293,7 +1292,7 @@ class MEVEV(MEMultiDimensional):
 
         self.info = lwork
         self.mean = self.mean.transpose()
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape, orientation.transpose((2, 1, 0)))
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape, orientation.transpose((2, 1, 0)))
 
 
 class MEEVV(MEMultiDimensional):
@@ -1304,16 +1303,16 @@ class MEEVV(MEMultiDimensional):
         self.info = np.array(0, np.int32, order='F')
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
-        shape = np.zeros((self.d, self.G), float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        orientation = np.zeros((self.d, self.d, self.g), float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
+        shape = np.zeros((self.d, self.g), float, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         self.loglik = np.array(0, float, order='F')
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
 
         if self.prior is None:
             mclustaddson.meevv(self.data,
@@ -1340,7 +1339,7 @@ class MEEVV(MEMultiDimensional):
 
         self.mean = self.mean.transpose()
         scale = np.array(scale[0], float, order='F')
-        self.variance = VarianceDecomposition(self.d, self.G, scale,
+        self.variance = VarianceDecomposition(self.d, self.g, scale,
                                               shape.transpose(),
                                               orientation.transpose((2, 1, 0)))
 
@@ -1355,15 +1354,15 @@ class MEEVV(MEMultiDimensional):
         return super()._handle_output()
 
     def _m_step_fortran(self):
-        self.mean = np.zeros((self.d, self.G), float, order='F')
-        orientation = np.zeros((self.d, self.d, self.G), float, order='F')
-        u = np.zeros((self.d, self.d, self.G), float, order='F')
-        scale = np.zeros(self.G, float, order='F')
-        shape = np.zeros((self.d, self.G), float, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros((self.d, self.g), float, order='F')
+        orientation = np.zeros((self.d, self.d, self.g), float, order='F')
+        u = np.zeros((self.d, self.d, self.g), float, order='F')
+        scale = np.zeros(self.g, float, order='F')
+        shape = np.zeros((self.d, self.g), float, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         lwork = np.array(max(3 * min(self.n, self.d) + max(self.n, self.d),
                              5 * min(self.n, self.d),
-                             self.d + self.G), np.int32, order='F')
+                             self.d + self.g), np.int32, order='F')
         self.info = np.array(0, np.int32, order='F')
         if self.prior is None:
             mclustaddson.msevv(self.data,
@@ -1383,7 +1382,7 @@ class MEEVV(MEMultiDimensional):
 
         self.mean = self.mean.transpose()
         scale = np.array(scale[0], float, order='F')
-        self.variance = VarianceDecomposition(self.d, self.G, scale, shape.transpose(),
+        self.variance = VarianceDecomposition(self.d, self.g, scale, shape.transpose(),
                                               orientation.transpose((2, 1, 0)))
 
 
@@ -1393,8 +1392,8 @@ class MEVVV(MEMultiDimensional):
         self.model = Model.VVV
 
     def _me_fortran(self, control, vinv):
-        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
-        cholsigma = np.zeros(self.d * self.d * self.G, float).reshape(self.d, self.d, self.G, order='F')
+        self.mean = np.zeros(self.g * self.d, float).reshape(self.d, self.g, order='F')
+        cholsigma = np.zeros(self.d * self.d * self.g, float).reshape(self.d, self.d, self.g, order='F')
         self.pro = np.zeros(self.z.shape[1], float, order='F')
         w = np.zeros(self.d, float, order='F')
         s = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
@@ -1402,7 +1401,7 @@ class MEVVV(MEMultiDimensional):
         if self.prior is None:
             mclust.mevvv(self.control.equalPro,
                          self.data,
-                         self.G,
+                         self.g,
                          -1.0 if vinv is None else vinv,
                          self.z,
                          self.iterations,
@@ -1421,19 +1420,19 @@ class MEVVV(MEMultiDimensional):
         # to the order python expects
         self.mean = self.mean.transpose()
         cholsigma = cholsigma.transpose((2, 0, 1))
-        self.variance = VarianceCholesky(self.d, self.G, cholsigma)
+        self.variance = VarianceCholesky(self.d, self.g, cholsigma)
 
     def _m_step_fortran(self):
         w = np.zeros(self.d, float, order='F')
-        self.mean = np.zeros(self.G * self.d, float).reshape(self.d, self.G, order='F')
-        cholsigma = np.zeros(self.d * self.d * self.G, float).reshape(self.d, self.d, self.G, order='F')
-        self.pro = np.zeros(self.G, float, order='F')
+        self.mean = np.zeros(self.g * self.d, float).reshape(self.d, self.g, order='F')
+        cholsigma = np.zeros(self.d * self.d * self.g, float).reshape(self.d, self.d, self.g, order='F')
+        self.pro = np.zeros(self.g, float, order='F')
         s = np.zeros(self.d * self.d, float).reshape(self.d, self.d, order='F')
 
         if self.prior is None:
             mclust.msvvv(self.data,
                          self.z,
-                         self.G,
+                         self.g,
                          w,
                          self.mean,
                          cholsigma,
@@ -1445,4 +1444,4 @@ class MEVVV(MEMultiDimensional):
 
         self.mean = self.mean.transpose()
         cholsigma = cholsigma.transpose((2, 0, 1))
-        self.variance = VarianceCholesky(self.d, self.G, cholsigma)
+        self.variance = VarianceCholesky(self.d, self.g, cholsigma)

@@ -6,7 +6,7 @@ from mclust.hierarchical_clustering import HCEII, HCVVV
 
 
 class ModelFactory:
-    def create(data, model, z=None, groups=2, prior=None):
+    def create(data, model, z=None, groups=2, prior=None, **kwargs):
         model = {
             Model.E: [MVNX, MEE],
             Model.V: [MVNX, MEV],
@@ -26,13 +26,18 @@ class ModelFactory:
             Model.EVV: [MVNXXX, MEEVV],
             Model.VVV: [MVNXXX, MEVVV]
         }.get(model)
+        if 'control' in kwargs:
+            control = kwargs['control']
+        else:
+            control = EMControl()
+
         if data.ndim == 1:
             if z is None:
                 z = mclust_unmap(qclass(data, groups))
             if z.shape[1] == 1:
                 return model[0](np.asfortranarray(data), z, prior)
             else:
-                return model[1](np.asfortranarray(data), z, prior)
+                return model[1](np.asfortranarray(data), z, prior, control)
         else:
             if z is None:
                 d = data.shape[1]
@@ -45,7 +50,7 @@ class ModelFactory:
             if z.shape[1] == 1:
                 return model[0](np.asfortranarray(data), z, prior)
             else:
-                return model[1](np.asfortranarray(data), z, prior)
+                return model[1](np.asfortranarray(data), z, prior, control)
     create = staticmethod(create)
 
 

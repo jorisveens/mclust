@@ -1,20 +1,11 @@
 import unittest
-import pkg_resources
-import warnings
+from .utility import apply_resource
 
-from mclust.mclust_bic import MclustBIC
+from mclust.bic import MclustBIC
 from mclust.models import Model
 import numpy as np
 
-# TODO add test for models that fail
-
 resource_package = 'mclust'
-
-
-def apply_resource(directory, file, func):
-    resource_path = '/'.join(('resources', directory, file))
-    with pkg_resources.resource_stream(resource_package, resource_path) as f:
-        return func(f)
 
 
 class TestBIC(unittest.TestCase):
@@ -75,7 +66,7 @@ class TestBIC(unittest.TestCase):
 
         model = bic.pick_best_model()
         self.assertEqual(model.model, Model.VEV)
-        self.assertEqual(model.G, 2)
+        self.assertEqual(model.g, 2)
 
 
 if __name__ == '__main__':

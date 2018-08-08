@@ -106,13 +106,13 @@ class MixtureModel:
     """
     Abstract class representing a Gaussian finite mixture model.
     """
-    def __init__(self, data, z=None, prior=None):
+    def __init__(self, data, z=None, prior=None, **kwargs):
         """
         Gaussian finite mixture model.
 
         :param data: data to use for fitting the Gaussian finite mixture model represented by a numpy array, containing
         n observations, of dimension d.
-        :param z: numpy array with shape (n x G), where n is the number of observations in data, and G the amount of
+        :param z: numpy array with shape (n x g), where n is the number of observations in data, and G the amount of
         cluster components in the model. index [i,j] indicates the probability that observation i belongs to component
         j.
         :param prior: optional prior for mixture model (not yet supported)
@@ -131,7 +131,7 @@ class MixtureModel:
         self.returnCode = None
         self.z = z
 
-        self.G = None
+        self.g = None
         self.n = len(data)
         if data.ndim == 1:
             self.d = 1
@@ -150,7 +150,7 @@ class MixtureModel:
         """
         if self.returnCode is None:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
-        nparams = self.model.n_mclust_params(self.d, self.G, noise, equalpro)
+        nparams = self.model.n_mclust_params(self.d, self.g, noise, equalpro)
         return 2 * self.loglik - nparams * log(self.n)
 
     def fit(self):
@@ -171,7 +171,7 @@ class MixtureModel:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         elif self.returnCode != 0:
             raise ModelError("Model not fitted correctly, check warnings and returnCode for more information.")
-        if self.G == 1:
+        if self.g == 1:
             return np.zeros(self.n)
 
     def predict(self, new_data=None):
@@ -199,7 +199,7 @@ class MixtureModel:
             raise ModelError("mixing proportions must be supplied")
         cden = self.component_density(new_data, logarithm=True)
         # TODO implement vinv/noise
-        if self.G > 1:
+        if self.g > 1:
             pro = np.copy(self.pro)
             if np.any(self.pro == 0):
                 pro = pro[self.pro != 0]
@@ -218,7 +218,7 @@ class MixtureModel:
 
     def __deepcopy__(self, memodict={}):
         new = type(self)(self.data, np.copy(self.z, order='F'))
-        new.G = copy.deepcopy(self.G)
+        new.g = copy.deepcopy(self.g)
         new.mean = copy.deepcopy(self.mean)
         new.pro = copy.deepcopy(self.pro)
 
@@ -244,7 +244,7 @@ class MixtureModel:
         model.returnCode = self.returnCode
         model.z = self.z
 
-        model.G = self.G
+        model.g = self.g
         model.n = self.n
         model.d = self.d
 
@@ -252,7 +252,7 @@ class MixtureModel:
         return f"modelname: {self.model}\n" \
                f"n: {self.n}\n" \
                f"d: {self.d}\n" \
-               f"G: {self.G}\n" \
+               f"g: {self.g}\n" \
                f"mean: {self.mean}\n" \
                f"variance: {self.variance}\n" \
                f"pro: {self.pro}\n" \

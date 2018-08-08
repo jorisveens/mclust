@@ -1,13 +1,12 @@
 from unittest import TestCase
-import numpy as np
+from .utility import apply_resource
 
 from mclust.hierarchical_clustering import *
 from mclust.utility import mclust_unmap
 
 
-class TestHc(TestCase):
+class TestHC(TestCase):
     test_data_2d = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)], float, order='F')
-    diabetes = np.genfromtxt("/home/joris/Documents/UCD/final_project/diabetes.csv", delimiter=',', skip_header=1)
     test_data_sclaed = np.array([[- 1.080123,  - 1.4639385, - 0.5400617],
                                 [1.080123, 0.1126107, - 1.6201852],
                                 [0.000000, - 1.0134959, - 0.5400617],
@@ -16,6 +15,19 @@ class TestHc(TestCase):
                                 [0.000000, 1.0134959, 0.5400617],
                                 [- 1.080123, - 0.1126107, 1.6201852],
                                 [1.080123, 1.4639385, 0.5400617]])
+
+    def setUp(self):
+        self.diabetes = apply_resource('data_sets', 'diabetes.csv',
+                                       lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
+        self.test_data_2d = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)], float, order='F')
+        self.test_data_sclaed = np.array([[- 1.080123,  - 1.4639385, - 0.5400617],
+                                         [1.080123, 0.1126107, - 1.6201852],
+                                         [0.000000, - 1.0134959, - 0.5400617],
+                                         [- 1.080123, 0.5630533, 0.5400617],
+                                         [1.080123, - 0.5630533, - 0.5400617],
+                                         [0.000000, 1.0134959, 0.5400617],
+                                         [- 1.080123, - 0.1126107, 1.6201852],
+                                         [1.080123, 1.4639385, 0.5400617]])
 
     def test_scale(self):
         scaled = scale(self.test_data_2d, center=True, rescale=True)
