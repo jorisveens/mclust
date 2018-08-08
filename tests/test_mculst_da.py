@@ -9,7 +9,12 @@ from .utility import apply_resource
 
 class TestMclust(TestCase):
     def setUp(self):
-        pass
+        self.diabetes = apply_resource('data_sets', "diabetes.csv",
+                              lambda f: np.genfromtxt(f, skip_header=1, delimiter=','))
+        self.diabets_cls = apply_resource('data_sets', "diabetes_classification.csv",
+                                 lambda f: np.genfromtxt(f, delimiter=','))
+        self.iris = apply_resource('data_sets', 'iris.csv',
+                                   lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
 
     def test_handle_input_correct(self):
         data = np.array([12, 13, 56, 60])
@@ -34,27 +39,23 @@ class TestMclust(TestCase):
             DiscriminantAnalysis(data, np.array([1, 2, 3]), g=np.array([0, 1, 2, 3]))
 
     def test_edda(self):
-        data = apply_resource('data_sets', "diabetes.csv",
-                              lambda f: np.genfromtxt(f, skip_header=1, delimiter=','))
-        classes = apply_resource('data_sets', "diabetes_classification.csv",
-                                 lambda f: np.genfromtxt(f, delimiter=','))
-
-        model = EDDA(data, classes)
+        model = EDDA(self.diabetes, self.diabets_cls)
 
         print(model.predict())
         print(list(model.n))
 
     def test_mclust_da(self):
-        data = apply_resource('data_sets', "diabetes.csv",
-                              lambda f: np.genfromtxt(f, skip_header=1, delimiter=','))
-        classes = apply_resource('data_sets', "diabetes_classification.csv",
-                                 lambda f: np.genfromtxt(f, delimiter=','))
-
-        model = MclustDA(data, classes)
+        model = MclustDA(self.diabetes, self.diabets_cls)
         for mod in model.fitted_models.values():
             print(mod)
 
         print(model.predict())
+
+    def test_iris(self):
+        da = MclustDA(self.iris[:, range(4)], self.iris[:, 4])
+        for model in da.fitted_models.values():
+            print(model)
+        print(da.predict())
 
     def test_loglik(self):
         data = apply_resource('data_sets', "diabetes.csv",

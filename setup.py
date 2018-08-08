@@ -24,5 +24,6 @@ if __name__ == '__main__':
           ext_modules=[mclustaddson, mclust],
           data_files=[('mclust/resources/data_sets', ['resources/data_sets/diabetes.csv',
                                                       'resources/data_sets/diabetes_classification.csv',
-                                                      'resources/data_sets/simulated1d.csv']),
+                                                      'resources/data_sets/simulated1d.csv',
+                                                      'resources/data_sets/iris.csv']),
                       ('mclust/resources/test_data', test_files)])

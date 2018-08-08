@@ -28,7 +28,12 @@ class Mclust(MixtureModel):
 
         self.__dict__.update(model.__dict__.copy())
         self._underlying_model = model
+        return self.returnCode
 
     def classify(self):
         super().classify()
         return self._underlying_model.classify()
+
+    def component_density(self, new_data=None, logarithm=False):
+        return self._underlying_model.component_density(new_data, logarithm)
+

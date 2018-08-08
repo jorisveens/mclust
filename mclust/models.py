@@ -174,6 +174,23 @@ class MixtureModel:
         if self.G == 1:
             return np.zeros(self.n)
 
+    def predict(self, new_data=None):
+        if new_data is None:
+            new_data = self.data
+        else:
+            if new_data.ndim == 1:
+                if self.d != 1:
+                    raise ModelError("new_data does not have the same dimensions as training data")
+            elif new_data.shape[0] != self.d:
+                raise ModelError("new_data does not have the same dimensions as training data")
+
+        z = self.component_density(new_data, logarithm=True)
+        # TODO implement vinv/noise
+        z = z + np.log(self.pro / sum(self.pro))
+        z = (z.transpose() - np.log(np.sum(np.exp(z), 1))).transpose()
+        z = np.exp(z)
+        return np.argmax(z, 1)
+
     def component_density(self, new_data=None, logarithm=False):
         raise AbstractMethodError()
 
