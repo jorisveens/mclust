@@ -1,5 +1,6 @@
 import unittest
 import pkg_resources
+import warnings
 
 from mclust.mclust_bic import MclustBIC
 from mclust.models import Model
@@ -17,14 +18,13 @@ def apply_resource(directory, file, func):
 
 
 class TestBIC(unittest.TestCase):
-    test_data = np.array([1,2,3,4,15,16,17,18])
-    test_data_2d = np.array([[(i * j + 4 * (i - j * (.5 * i - 8)) % 12) for i in range(3)] for j in range(8)])
-
     def setUp(self):
         self.diabetes = apply_resource('data_sets', 'diabetes.csv',
                                        lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
         self.simulated1d = apply_resource('data_sets', 'simulated1d.csv',
                                           lambda f: np.genfromtxt(f, delimiter=','))
+        self.iris = apply_resource('data_sets', 'iris.csv',
+                                   lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
 
     def test_single_dim(self):
         bic = MclustBIC(self.simulated1d)
@@ -42,7 +42,7 @@ class TestBIC(unittest.TestCase):
         model = bic.pick_best_model()
         expected_classification = apply_resource('test_data', 'simulated1d-best-model-classification.csv',
                                                  lambda f: np.genfromtxt(f, delimiter=','))
-        self.assertTrue(np.array_equal(model.classify(), expected_classification))
+        self.assertTrue(np.array_equal(model.predict(), expected_classification))
 
     def test_multi_dim(self):
         bic = MclustBIC(self.diabetes)
@@ -60,7 +60,22 @@ class TestBIC(unittest.TestCase):
         model = bic.pick_best_model()
         expected_classification = apply_resource('test_data', 'diabetes-best-model-classification.csv',
                                                  lambda f: np.genfromtxt(f, delimiter=','))
-        self.assertTrue(np.array_equal(model.classify(), expected_classification))
+        self.assertTrue(np.array_equal(model.predict(), expected_classification))
+
+    def test_iris(self):
+        bic = MclustBIC(self.iris[:, range(4)])
+
+        expected_return = apply_resource('test_data', 'iris-BIC-return.csv',
+                                         lambda f: np.genfromtxt(f, delimiter=','))
+        expected_bic = apply_resource('test_data', 'iris-BIC.csv',
+                                      lambda f: np.genfromtxt(f, delimiter=','))
+
+        self.assertTrue(np.array_equal(bic.get_return_codes_matrix(), expected_return))
+        self.assertTrue(np.allclose(bic.get_bic_matrix(), expected_bic, equal_nan=True))
+
+        model = bic.pick_best_model()
+        self.assertEqual(model.model, Model.VEV)
+        self.assertEqual(model.G, 2)
 
 
 if __name__ == '__main__':
