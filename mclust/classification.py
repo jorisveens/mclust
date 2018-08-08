@@ -54,11 +54,11 @@ class DiscriminantAnalysis:
             for i in range(len(self.labels)):
                 self.models[i] = models
 
-    def predict(self, newdata=None, prior=None):
+    def predict(self, new_data=None, prior=None):
         """For now corresponds with summary.MclustDA"""
         group_sizes = np.array([model.n for model in self.fitted_models.values()])
-        if newdata is None:
-            newdata = self.data
+        if new_data is None:
+            new_data = self.data
 
         if prior is None:
             prior = group_sizes / np.sum(group_sizes)
@@ -68,9 +68,9 @@ class DiscriminantAnalysis:
             if np.any(prior < 0):
                 raise ModelError("prior must be nonnegative")
 
-        z = np.zeros((newdata.shape[0], self.nclasses))
+        z = np.zeros((new_data.shape[0], self.nclasses))
         for key in range(self.nclasses):
-            z[:, key] = self.fitted_models[key].density(newdata, logarithm=True)
+            z[:, key] = self.fitted_models[key].density(new_data, logarithm=True)
         z = z + np.log(prior/np.sum(prior))
         z = (z.transpose() - np.log(np.sum(np.exp(z), 1))).transpose()
         z = np.exp(z)
