@@ -45,7 +45,7 @@ class MVNX(MVN):
             raise NotImplementedError()
 
         self.variance = VarianceSigmasq(self.d, self.g, np.array(sigmasq))
-        self.mean = np.array(self.mean)
+        self.mean = np.array([[self.mean]])
 
         return self._check_output()
 

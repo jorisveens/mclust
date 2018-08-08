@@ -107,11 +107,3 @@ class TestMclust(TestCase):
 
     def test_MVNXXX(self):
         self.multi_dimensional_test_template(Model.EEE, [1])
-
-    def test_CDens(self):
-        model = ModelFactory.create(self.diabetes, Model.VVV, groups=2)
-        model.fit()
-        cdens = model.component_density(logarithm=True)
-
-
-

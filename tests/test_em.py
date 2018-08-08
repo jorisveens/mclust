@@ -1,11 +1,9 @@
 import unittest
 import json
-from .utility import apply_resource
+from utility import apply_resource
 
 from mclust.utility import qclass, mclust_unmap
 from mclust.em import *
-
-resource_package = 'mclust'
 
 
 def clean_json(data):
@@ -140,7 +138,8 @@ class MStepTest(unittest.TestCase):
     def setUp(self):
         self.diabetes = apply_resource('data_sets', 'diabetes.csv',
                                        lambda f: np.genfromtxt(f, delimiter=',', skip_header=1))
-        self.testData = np.array([1, 20, 3, 34, 5, 0, 7, 12])
+        self.simulated1d = apply_resource('data_sets', 'simulated1d.csv',
+                                          lambda f: np.genfromtxt(f, delimiter=','))
         self.groups = [2, 3, 4, 5]
         self.z_matrices = {}
         for group in self.groups:
@@ -164,21 +163,26 @@ class MStepTest(unittest.TestCase):
             self.assertTrue(np.allclose(expected['parameters']['variance']['sigma'].transpose(2, 1, 0),
                                         model.variance.get_covariance()))
 
+    def single_dimensional_test_template(self, name, func):
+        for group in self.groups:
+            model = func(self.simulated1d, self.z_matrices[group])
+            model.fit()
+            model.m_step()
+            expected = apply_resource('test_data', f'simulated1d-{name}-{group}-mstep.json',
+                                      lambda f: clean_json(json.load(f)))
+
+            self.assertEqual(expected['returnCode'],
+                             model.returnCode)
+            self.assertTrue(np.allclose(np.array([expected['parameters']['mean']]).transpose(),
+                                        model.mean))
+            self.assertTrue(np.allclose(expected['parameters']['variance']['sigmasq'][0],
+                                        model.variance.sigmasq[0], atol=0.0001))
+
     def test_mstepE(self):
-        z = mclust_unmap(qclass(self.testData, 3))
-        model = MEE(self.testData, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.single_dimensional_test_template('E', MEE)
 
     def test_mstepV(self):
-        z = mclust_unmap(qclass(self.testData, 3))
-        model = MEV(self.testData, z)
-        model.fit()
-        print(model)
-        model.m_step()
-        print(model)
+        self.single_dimensional_test_template('V', MEV)
 
     def test_mstepEEE(self):
         self.multi_dimensional_test_template('EEE', MEEEE)
@@ -246,46 +250,46 @@ class EStepTest(unittest.TestCase):
         self.assertTrue(np.allclose(expected['loglik'], model.loglik))
         self.assertTrue(np.allclose(expected['z'], model.z, atol=0.0001))
 
-    def test_mstepEEE(self):
+    def test_estepEEE(self):
         self.multi_dimensional_test_template('EEE', MEEEE)
 
-    def test_mstepEII(self):
+    def test_estepEII(self):
         self.multi_dimensional_test_template('EII', MEEII)
 
-    def test_mstepVII(self):
+    def test_estepVII(self):
         self.multi_dimensional_test_template('VII', MEVII)
 
-    def test_mstepEEI(self):
+    def test_estepEEI(self):
         self.multi_dimensional_test_template('EEI', MEEEI)
 
-    def test_mstepVEI(self):
+    def test_estepVEI(self):
         self.multi_dimensional_test_template('VEI', MEVEI)
 
-    def test_mstepEVI(self):
+    def test_estepEVI(self):
         self.multi_dimensional_test_template('EVI', MEEVI)
 
-    def test_mstepVVI(self):
+    def test_estepVVI(self):
         self.multi_dimensional_test_template('VVI', MEVVI)
 
-    def test_mstepEVE(self):
+    def test_estepEVE(self):
         self.multi_dimensional_test_template('EVE', MEEVE)
 
-    def test_mstepVEE(self):
+    def test_estepVEE(self):
         self.multi_dimensional_test_template('VEE', MEVEE)
 
-    def test_mstepVVE(self):
+    def test_estepVVE(self):
         self.multi_dimensional_test_template('VVE', MEVVE)
 
-    def test_mstepEEV(self):
+    def test_estepEEV(self):
         self.multi_dimensional_test_template('EEV', MEEEV)
 
-    def test_mstepVEV(self):
+    def test_estepVEV(self):
         self.multi_dimensional_test_template('VEV', MEVEV)
 
-    def test_mstepEVV(self):
+    def test_estepEVV(self):
         self.multi_dimensional_test_template('EVV', MEEVV)
 
-    def test_mstepVVV(self):
+    def test_estepVVV(self):
         self.multi_dimensional_test_template('VVV', MEVVV)
 
 

@@ -26,23 +26,35 @@ class TestMclust(TestCase):
     def test_predict(self):
         model = Mclust(self.diabetes)
         model.fit()
+        expected = np.array(
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+             1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 1,
+             1, 1, 2, 2, 1, 1, 1, 1, 1, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2, 3, 2,
+             2, 1, 2, 2, 3, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 3, 3, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+             3]) - 1
 
-        print(model.predict())
-        print(model.classify())
-        print(model.density())
-        self.assertTrue(np.array_equal(model.predict(), model.classify()))
+        self.assertTrue(np.array_equal(model.predict(), expected))
 
     def test_predict1d(self):
         model = Mclust(self.simulated1d)
         model.fit()
+        expected = np.array(
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 1, 3, 1,
+             2, 2, 2, 2, 2, 1, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 2, 1, 1, 2, 2, 2,
+             2, 3, 2, 2, 1, 2, 1, 2, 1, 3, 2, 2, 2, 1, 2, 2, 3, 2, 2, 1, 3, 1, 3, 1, 3, 2, 2, 1, 3, 4, 3, 4, 3, 3, 3, 4,
+             3, 3, 3, 3, 4, 4, 4, 3, 3, 3, 3, 4, 3, 3, 3, 3, 4, 4, 4, 4, 4, 3, 3, 4, 3, 4, 3, 3, 4, 4, 3, 4, 3, 4, 3, 3,
+             3])
 
-        print(model.predict())
-        print(model.classify())
+        self.assertTrue(np.array_equal(model.predict(), expected))
 
     def test_iris(self):
         model = Mclust(self.iris[:, range(4)])
         model.fit()
-        print(model)
-        print(model.predict())
-        print(sum(model.predict()))
 
+        self.assertEqual(model.model, Model.VEV)
+        self.assertEqual(model.g, 2)
+        self.assertTrue(np.isclose(model.loglik, -215.726))
+
+        expected = np.concatenate((np.zeros(50), np.ones(100)))
+
+        self.assertTrue(np.array_equal(model.predict(), expected))
