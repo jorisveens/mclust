@@ -103,7 +103,7 @@ class MclustBIC:
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
                 fitted = self.fitted_models[model, group]
-                if fitted is not None:
+                if fitted is not None and fitted.returnCode == 0:
                     bic_matrix[group_index, model_index] = fitted.bic()
         return bic_matrix
 

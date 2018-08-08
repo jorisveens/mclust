@@ -107,6 +107,10 @@ class ME(MixtureModel):
                 warnings.warn("mixing proporting fell below threshold")
             self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
             return -2 if self.control.equalPro else -3
+        if np.any(np.isinf(self.variance.get_covariance())):
+            warnings.warn("singular covariance")
+            self.variance = self.mean = self.pro = self.loglik = None
+            return -1
         if self.iterations >= self.control.itmax[0]:
             warnings.warn("iteration limit reached")
             self.iterations = -self.iterations
@@ -129,9 +133,7 @@ class ME(MixtureModel):
             model.data = new_data
             model.n = new_data.shape[0]
 
-        if model.mean is None or model.pro is None or model.variance is None:
-            warnings.warn("parameters are missing")
-            self.returnCode = 9
+        if self._check_parameters() != 0:
             return None
 
         model.pro = np.array([-1], float, order='F')
