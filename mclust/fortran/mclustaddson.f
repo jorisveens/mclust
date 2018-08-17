@@ -553,7 +553,7 @@
 
       niterin = niterin + 1
       
-*       initialise C      
+*       initialise C
       call dcopy(p*p, 0.d0, 0, C, 1)
 *       ### NOTE: scale is initialised in R
       

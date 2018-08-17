@@ -13,8 +13,10 @@ if __name__ == '__main__':
     mclust = Extension(name='mclust.fortran.mclust',
                        sources=['mclust/fortran/mclust.pyf',
                                 'mclust/fortran/mclust.f',
-                                'mclust/fortran/mclustaddson.f'],
-                       libraries=['lapack', 'blas', 'slatec', 'gfortran', 'm', 'quadmath', 'R'])
+                                'mclust/fortran/d1mach.f',
+                                'mclust/fortran/i1mach.f',
+                                ],
+                       libraries=['lapack', 'blas'])
 
     test_files = ['resources/test_data/' + f for f in listdir('resources/test_data') if isfile(join('resources/test_data', f))]
 

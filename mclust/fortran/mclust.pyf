@@ -153,7 +153,7 @@ python module mclust ! in
         end subroutine me1ep
         subroutine ms1e(x,z,n,g,mu,sigsq,pro) ! in :mclust:mclust.f
             double precision dimension(*), intent(in) :: x
-            double precision dimension(n,*), intent(inout) :: z
+            double precision dimension(n,*), intent(in) :: z
             integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
             integer, intent(in) :: g
             double precision dimension(*), intent(inout) :: mu
@@ -230,7 +230,7 @@ python module mclust ! in
         end subroutine meeeep
         subroutine mseee(x,z,n,p,g,w,mu,u,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -305,7 +305,7 @@ python module mclust ! in
         end subroutine meeeip
         subroutine mseei(x,z,n,p,g,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -391,7 +391,7 @@ python module mclust ! in
         end subroutine meeevp
         subroutine mseev(x,z,n,p,g,w,lwork,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -480,7 +480,7 @@ python module mclust ! in
         end subroutine meeiip
         subroutine mseii(x,z,n,p,g,mu,sigsq,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -553,7 +553,7 @@ python module mclust ! in
         end subroutine meevip
         subroutine msevi(x,z,n,p,g,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -632,7 +632,7 @@ python module mclust ! in
         end subroutine me1vp
         subroutine ms1v(x,z,n,g,mu,sigsq,pro) ! in :mclust:mclust.f
             double precision dimension(*), intent(in) :: x
-            double precision dimension(n,*), intent(inout) :: z
+            double precision dimension(n,*), intent(in) :: z
             integer, optional,check(shape(z,0)==n),depend(z) :: n=shape(z,0)
             integer, intent(in) :: g
             double precision dimension(*), intent(inout) :: mu
@@ -709,7 +709,7 @@ python module mclust ! in
         end subroutine meveip
         subroutine msvei(x,z,n,p,g,maxi,tol,mu,scale,shape_bn,pro,scl,shp,w) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -805,7 +805,7 @@ python module mclust ! in
         end subroutine mevevp
         subroutine msvev(x,z,n,p,g,w,lwork,maxi,tol,mu,scale,shape_bn,o,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -899,7 +899,7 @@ python module mclust ! in
         end subroutine meviip
         subroutine msvii(x,z,n,p,g,mu,sigsq,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -972,7 +972,7 @@ python module mclust ! in
         end subroutine mevvip
         subroutine msvvi(x,z,n,p,g,mu,scale,shape_bn,pro) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g
@@ -1088,7 +1088,7 @@ python module mclust ! in
         end subroutine mevvvp
         subroutine msvvv(x,z,n,p,g,w,mu,u,pro,s) ! in :mclust:mclust.f
             double precision dimension(n,*), intent(in) :: x
-            double precision dimension(n,*),depend(n), intent(inout) :: z
+            double precision dimension(n,*),depend(n), intent(in) :: z
             integer, optional,check(shape(x,0)==n),depend(x) :: n=shape(x,0)
             integer, optional,check(shape(mu,0)==p),depend(mu) :: p=shape(mu,0)
             integer, intent(in) :: g

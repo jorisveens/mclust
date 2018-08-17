@@ -13473,7 +13473,7 @@ c     end if
           m = l
           l = ic(l)
         end do
-        if (l .lt. n) call intpr("l .lt. n", 8, l, 1)
+c       if (l .lt. n) call intpr("l .lt. n", 8, l, 1)
         ic(m) = lg
       end if
 

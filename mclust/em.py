@@ -46,7 +46,7 @@ class ME(MixtureModel):
         if control is not None:
             self._set_control(control)
 
-        self.returnCode = self._check_z_marix()
+        self.returnCode = self._check_z_matrix()
         if self.returnCode != 0:
             return self.returnCode
 
@@ -69,7 +69,7 @@ class ME(MixtureModel):
     def e_step(self):
         raise AbstractMethodError()
 
-    def _check_z_marix(self):
+    def _check_z_matrix(self):
         if self.z is None:
             warnings.warn("z is missing")
             return 9
@@ -174,13 +174,13 @@ class ME1Dimensional(ME):
 
     def m_step(self):
         super().m_step()
-        ret = self._check_z_marix()
+        ret = self._check_z_matrix()
         if ret != 0:
             return ret
 
         self._m_step_fortran()
 
-        if self.sigmasq > round_sig(np.finfo(float).max, 6):
+        if np.any(self.sigmasq > round_sig(np.finfo(float).max, 6)):
             warnings.warn("cannot compute M-step")
             self.pro = self.mean = self.sigmasq = float("nan")
             self.returnCode = -1
@@ -305,8 +305,9 @@ class MEV(ME1Dimensional):
 
     def _m_step_fortran(self):
         self.mean = np.zeros(self.g, float, order='F')
-        self.sigmasq = np.array(1, float, order='F')
+        self.sigmasq = np.zeros(self.g, float, order='F')
         self.pro = np.zeros(self.g, float, order='F')
+
         if self.prior is None:
             mclust.ms1v(self.data,
                         self.z,
@@ -367,7 +368,7 @@ class MEMultiDimensional(ME):
 
     def m_step(self):
         super().m_step()
-        ret = self._check_z_marix()
+        ret = self._check_z_matrix()
         if ret != 0:
             return ret
 

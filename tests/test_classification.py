@@ -1,11 +1,17 @@
 from unittest import TestCase
 import numpy as np
+import pkg_resources
 
 from mclust.classification import MclustDA, EDDA, DiscriminantAnalysis
 from mclust.models import Model
 from mclust.exceptions import ModelError
+resource_package = 'mclust'
 
-from .utility import apply_resource
+
+def apply_resource(directory, file, func):
+    resource_path = '/'.join(('resources', directory, file))
+    with pkg_resources.resource_stream(resource_package, resource_path) as f:
+        return func(f)
 
 
 class TestMclust(TestCase):

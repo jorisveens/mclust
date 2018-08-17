@@ -1,11 +1,16 @@
 import unittest
-from .utility import apply_resource
+import pkg_resources
 
 from mclust.bic import MclustBIC
 from mclust.models import Model
 import numpy as np
-
 resource_package = 'mclust'
+
+
+def apply_resource(directory, file, func):
+    resource_path = '/'.join(('resources', directory, file))
+    with pkg_resources.resource_stream(resource_package, resource_path) as f:
+        return func(f)
 
 
 class TestBIC(unittest.TestCase):
