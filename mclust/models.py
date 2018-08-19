@@ -181,7 +181,7 @@ class MixtureModel:
             if new_data.ndim == 1:
                 if self.d != 1:
                     raise ModelError("new_data does not have the same dimensions as training data")
-            elif new_data.shape[0] != self.d:
+            elif new_data.shape[1] != self.d:
                 raise ModelError("new_data does not have the same dimensions as training data")
 
         z = self.component_density(new_data, logarithm=True)
