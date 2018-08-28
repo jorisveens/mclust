@@ -24,24 +24,25 @@ class TestMclust(TestCase):
         if groups is None:
             groups = self.groups
         for group in groups:
-            expected = apply_resource('test_data', f'diabetes-{model.value}-{group}-density.csv',
+            expected = apply_resource('test_data', 'diabetes-{}-{}-density.csv'.format(model.value, group),
                                       lambda f: np.genfromtxt(f, delimiter=','))
 
             mod = ModelFactory.create(self.diabetes, model, groups=group)
             mod.fit()
             dens = mod.density(logarithm=True)
 
-            self.assertTrue(np.allclose(expected, dens), f'{model} with {group} groups does not correspond')
+            self.assertTrue(np.allclose(expected, dens),
+                            '{} with {} groups does not correspond'.format(model.value, group))
 
     def single_dimensional_test_template(self, model, groups=None):
         if groups is None:
             groups = self.groups
         for group in groups:
-            expected = apply_resource('test_data', f'simulated1d-{model.value}-{group}-density.csv',
+            expected = apply_resource('test_data', 'simulated1d-{}-{}-density.csv'.format(model.value, group),
                                       lambda f: np.genfromtxt(f, delimiter=','))
 
             if group != 1:
-                z = apply_resource('test_data', f'z-diabetes-{group}.csv',
+                z = apply_resource('test_data', 'z-diabetes-{}.csv'.format(group),
                                    lambda f: np.asfortranarray(np.genfromtxt(f, delimiter=',')))
                 mod = ModelFactory.create(self.simulated1d, model, z=z)
             else:
@@ -51,7 +52,7 @@ class TestMclust(TestCase):
 
             dens = mod.density(logarithm=True)
 
-            self.assertTrue(np.allclose(expected, dens), f'{model} with {group} groups does not correspond')
+            self.assertTrue(np.allclose(expected, dens), '{} with {} groups does not correspond'.format(model.value, group))
 
     def test_MEE(self):
         self.single_dimensional_test_template(Model.E)

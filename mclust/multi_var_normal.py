@@ -30,7 +30,7 @@ class MVNX(MVN):
     def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 1:
-            raise DimensionError(f"Data must be one dimensional, actual dimension {self.data.ndim}")
+            raise DimensionError("Data must be one dimensional, actual dimension {}".format(self.data.ndim))
         self.model = Model.X
         self.g = 1
         self.pro = np.array([1], float, order='F')
@@ -61,7 +61,7 @@ class MVNXII(MVN):
     def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 2:
-            raise DimensionError(f"MVNXII requires two-dimensional data, actual dimension {self.data.ndim}")
+            raise DimensionError("MVNXII requires two-dimensional data, actual dimension {}".format(self.data.ndim))
         self.model = Model.XII
 
     def fit(self):
@@ -96,7 +96,7 @@ class MVNXXI(MVN):
     def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 2:
-            raise DimensionError(f"MVNXXI requires two-dimensional data, actual dimesnion {self.data.ndim}")
+            raise DimensionError("MVNXXI requires two-dimensional data, actual dimesnion {}".format(self.data.ndim))
         self.model = Model.XXI
 
     def fit(self):
@@ -132,7 +132,7 @@ class MVNXXX(MVN):
     def __init__(self, data, z=None, prior=None, **kwargs):
         super().__init__(data, z, prior)
         if self.data.ndim != 2:
-            raise DimensionError(f"MVNXXX requires two-dimensional data, actual dimension: {self.data.ndim}")
+            raise DimensionError("MVNXXX requires two-dimensional data, actual dimension: {}".format(self.data.ndim))
         self.model = Model.XXX
 
     def fit(self):

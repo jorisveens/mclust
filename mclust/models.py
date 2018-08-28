@@ -113,7 +113,7 @@ class MixtureModel:
         :param data: data to use for fitting the Gaussian finite mixture model represented by a numpy array, containing
         n observations, of dimension d.
         :param z: numpy array with shape (n x g), where n is the number of observations in data, and G the amount of
-        cluster components in the model. index [i,j] indicates the probability that observation i belongs to component
+        cluster components in the models. index [i,j] indicates the probability that observation i belongs to component
         j.
         :param prior: optional prior for mixture model (not yet supported)
         """
@@ -249,14 +249,14 @@ class MixtureModel:
         model.d = self.d
 
     def __str__(self):
-        return f"modelname: {self.model}\n" \
-               f"n: {self.n}\n" \
-               f"d: {self.d}\n" \
-               f"g: {self.g}\n" \
-               f"mean: {self.mean}\n" \
-               f"variance: {self.variance}\n" \
-               f"pro: {self.pro}\n" \
-               f"loglik: {self.loglik}\n" \
-               f"returnCode: {self.returnCode}\n" \
-               f"prior: {self.prior}\n"
+        return "modelname: {}\n"\
+               "n: {}\n" \
+               "d: {}\n" \
+               "g: {}\n" \
+               "mean:\n{}\n" \
+               "variance:\n{}\n" \
+               "pro: {}\n" \
+               "loglik: {}\n" \
+               "returnCode: {}\n".format(self.model, self.n, self.d, self.g, self.mean,
+                                         self.variance, self.pro, self.loglik, self.returnCode)
 

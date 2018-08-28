@@ -2,7 +2,7 @@ from unittest import TestCase
 import numpy as np
 import pkg_resources
 
-from mclust.mclust import Mclust, Model
+from mclust.clustering import Mclust, Model
 resource_package = 'mclust'
 
 

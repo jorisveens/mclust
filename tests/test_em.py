@@ -42,7 +42,7 @@ class METestCase(unittest.TestCase):
         self.z_matrices = {}
         for group in self.groups:
             self.z_matrices[group] = apply_resource(
-                'test_data', f'z-diabetes-{group}.csv',
+                'test_data', 'z-diabetes-{}.csv'.format(group),
                 lambda f: np.asfortranarray(np.genfromtxt(f,
                                                           delimiter=',')))
 
@@ -50,8 +50,8 @@ class METestCase(unittest.TestCase):
         for group in self.groups:
             model = func(self.diabetes, self.z_matrices[group])
             model.fit()
-            expected = apply_resource('test_data', f'diabetes-{name}-{group}.json',
-                                      lambda f: clean_json(json.load(f)))
+            expected = apply_resource('test_data', 'diabetes-{}-{}.json'.format(name, group),
+                                      lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
                              model.returnCode)
@@ -67,8 +67,8 @@ class METestCase(unittest.TestCase):
         for group in self.groups:
             model = func(self.simulated1d, self.z_matrices[group])
             model.fit()
-            expected = apply_resource('test_data', f'simulated1d-{name}-{group}.json',
-                                      lambda f: clean_json(json.load(f)))
+            expected = apply_resource('test_data', 'simulated1d-{}-{}.json'.format(name, group),
+                                      lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
                              model.returnCode)
@@ -151,7 +151,7 @@ class MStepTest(unittest.TestCase):
         self.z_matrices = {}
         for group in self.groups:
             self.z_matrices[group] = apply_resource(
-                'test_data', f'z-diabetes-{group}.csv',
+                'test_data', 'z-diabetes-{}.csv'.format(group),
                 lambda f: np.asfortranarray(np.genfromtxt(f,
                                                           delimiter=',')))
 
@@ -160,8 +160,8 @@ class MStepTest(unittest.TestCase):
             model = func(self.diabetes, self.z_matrices[group])
             model.fit()
             model.m_step()
-            expected = apply_resource('test_data', f'diabetes-{name}-{group}-mstep.json',
-                                      lambda f: clean_json(json.load(f)))
+            expected = apply_resource('test_data', 'diabetes-{}-{}-mstep.json'.format(name, group),
+                                      lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
                              model.returnCode)
@@ -175,8 +175,8 @@ class MStepTest(unittest.TestCase):
             model = func(self.simulated1d, self.z_matrices[group])
             model.fit()
             model.m_step()
-            expected = apply_resource('test_data', f'simulated1d-{name}-{group}-mstep.json',
-                                      lambda f: clean_json(json.load(f)))
+            expected = apply_resource('test_data', 'simulated1d-{}-{}-mstep.json'.format(name, group),
+                                      lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
                              model.returnCode)
@@ -245,8 +245,8 @@ class EStepTest(unittest.TestCase):
         model = func(self.diabetes, mclust_unmap(self.classes))
         model.m_step()
         model.e_step()
-        expected = apply_resource('test_data', f'diabetes-{name}-3-estep.json',
-                                  lambda f: clean_json(json.load(f)))
+        expected = apply_resource('test_data', 'diabetes-{}-3-estep.json'.format(name),
+                                  lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
         self.assertEqual(expected['returnCode'],
                          model.returnCode)

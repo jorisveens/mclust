@@ -15,7 +15,7 @@ class Variance:
         self.g = 1
 
     def __str__(self):
-        return f"covariance list:\n {self.get_covariance()}"
+        return str(self.get_covariance())
 
 
 class VarianceSigmasq(Variance):
