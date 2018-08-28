@@ -1,7 +1,6 @@
 import numpy as np
 import warnings
 import copy
-from math import log
 
 from mclust.exceptions import ModelError, AbstractMethodError
 from mclust.control import EMControl, ModelTypes
@@ -88,7 +87,6 @@ class DiscriminantAnalysis:
         logfclass = [np.log(self.n[key]/n) for key in sorted(self.n.keys())]
         ll = np.array([mod.density(new_data, True) for mod in self.fitted_models.values()])
         return np.sum(np.log(np.sum(np.exp(ll.transpose() + logfclass), 1)))
-
 
 
 class EDDA(DiscriminantAnalysis):
