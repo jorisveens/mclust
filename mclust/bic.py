@@ -50,7 +50,7 @@ class MclustBIC:
                 hc_matrix = hc.get_class_matrix(self.groups)
             for groupIndex, group in enumerate(self.groups):
                 for modelIndex, model in enumerate(self.models):
-                    if self.fitted_models[model, group] is not None:
+                    if self.fitted_models[group, model] is not None:
                         continue
 
                     z = mclust_unmap(qclass(data, group)) if self.d == 1 else mclust_unmap(hc_matrix[:, groupIndex])
@@ -59,7 +59,7 @@ class MclustBIC:
 
                     mod = ModelFactory.create(data, model, z=z, prior=prior, control=control)
                     mod.fit()
-                    self.fitted_models[model, group] = mod
+                    self.fitted_models[group, model] = mod
 
     def _handle_model_selection(self):
         if self.models is None:
@@ -88,7 +88,7 @@ class MclustBIC:
         bic_matrix = np.full((len(self.groups), len(self.models)), float('nan'), dtype=float)
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
-                fitted = self.fitted_models[model, group]
+                fitted = self.fitted_models[group, model]
                 if fitted is not None and fitted.returnCode == 0:
                     bic_matrix[group_index, model_index] = fitted.bic()
         return bic_matrix
@@ -97,7 +97,7 @@ class MclustBIC:
         ret_matrix = np.full((len(self.groups), len(self.models)), -42, dtype=int)
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
-                fitted = self.fitted_models[model, group]
+                fitted = self.fitted_models[group, model]
                 if fitted is not None:
                     ret_matrix[group_index, model_index] = fitted.returnCode
         return ret_matrix
@@ -109,4 +109,4 @@ class MclustBIC:
         except ValueError:
             # No valid models
             return None
-        return self.fitted_models[self.models[index[1]], self.groups[index[0]]]
+        return self.fitted_models[self.groups[index[0]], self.models[index[1]]]
