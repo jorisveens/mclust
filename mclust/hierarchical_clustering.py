@@ -6,6 +6,10 @@ from mclust.utility import traceW, partconv, scale
 
 
 class HC:
+    """
+    Agglomerative hierarchical clustering based on maximum likelihood criteria
+    for Gaussian mixture models parameterized by eigenvalue decomposition.
+    """
     def __init__(self, data):
         self.data = data.copy(order='F')
         self.pairs = None
@@ -55,6 +59,16 @@ class HC:
         raise AbstractMethodError()
 
     def get_class_matrix(self, g):
+        """
+        Determines the classifications corresponding to different numbers of
+        groups given merge pairs from hierarchical agglomeration.
+
+        :param g: vector of integers giving the number of clusters for which
+        the corresponding classifications are wanted.
+        :return: A matrix with length(g) columns, each column corresponding to
+                 a classification. Columns are indexed by the character
+                 representation of the integers in g.
+        """
         n = len(self.partition)
         k = len(np.unique(self.partition))
         g = np.sort(g)[::-1]

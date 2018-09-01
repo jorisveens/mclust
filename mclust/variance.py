@@ -4,14 +4,35 @@ from mclust.exceptions import DimensionError
 
 
 class Variance:
+    """
+    Representation for Covariance structures of a MixtureModel
+    """
     def __init__(self, d, g):
+        """
+        Constructor
+
+        :param d: Dimension of the data in MixtureModel
+        :param g: Number of cluster components in MixtureModel
+        """
         self.d = d
         self.g = g
 
     def get_covariance(self):
+        """
+        Computes the covariance matrices of the cluster components. Represented
+        by a NumPy array with shape (g × d × d). The ith component represents
+        the covariance matrix of group i.
+        :return: NumPy array with shape (g × d × d). The ith component represents
+                 the covariance matrix of group i.
+        """
         pass
 
     def select_group(self, index):
+        """
+        Abstract method to transform the Variance to a single covariance matrix
+        indicated by index.
+        :param index: Index of covariance matrix to select
+        """
         self.g = 1
 
     def __str__(self):
@@ -19,6 +40,12 @@ class Variance:
 
 
 class VarianceSigmasq(Variance):
+    """
+    Representation for Covariance structures of a MixtureModel based on vector
+    of sigmasq (lambda) indicating the volume (scale) of the covariance.
+
+    Used for E, V, EII and VII model configurations.
+    """
     def __init__(self, d, g, sigmasq):
         super().__init__(d, g)
         if sigmasq.ndim == 0:
@@ -38,6 +65,13 @@ class VarianceSigmasq(Variance):
 
 
 class VarianceDecomposition(Variance):
+    """
+    Representation for Covariance structures of a MixtureModel based on
+    eigenvalue decomposition (scale, shape, orientation)
+
+    Used for EEI, VEI, EVI, VVI, VEE, EVE, VVE, EEV, VEV and EVV, model
+    configurations.
+    """
     def __init__(self, d, g, scale, shape, orientation=None):
         super().__init__(d, g)
         self.scale = np.array(scale)
@@ -60,7 +94,6 @@ class VarianceDecomposition(Variance):
                             self.orientation[i].dot(np.diag(self.shape[i]))\
                                 .dot(self.orientation[i].transpose())
 
-        # return self.scale * self.orientation.dot(self.shape).dot(self.orientation.transpose())
         return covariance
 
     def select_group(self, index):
@@ -71,6 +104,12 @@ class VarianceDecomposition(Variance):
 
 
 class VarianceCholesky(Variance):
+    """
+    Representation for Covariance structures of a MixtureModel based on
+    Cholesky decomposition of covariance matrix.
+
+    Used for EEE and VVV model configurations.
+    """
     def __init__(self, d, g, cholsigma):
         super().__init__(d, g)
         if cholsigma.ndim != 3:

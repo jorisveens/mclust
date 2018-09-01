@@ -1,7 +1,7 @@
 import copy
-import numpy as np
 from enum import Enum
-from math import log
+
+import numpy as np
 
 from mclust.exceptions import ModelError, AbstractMethodError
 
@@ -82,9 +82,9 @@ class Model(Enum):
         :param d: number of dimensions in the data
         :param g: number of cluster components
         :param noise: A logical variable indicating whether or not the model includes an optional Poisson noise
-        component.
+                      component.
         :param equalpro: A logical variable indicating whether or not the components in the model are assumed to be
-        present in equal proportion.
+                         present in equal proportion.
         :return: The number of variance parameters in the corresponding Gaussian mixture model.
         """
         if g == 0:
@@ -105,16 +105,45 @@ class Model(Enum):
 class MixtureModel:
     """
     Abstract class representing a Gaussian finite mixture model.
+
+    :field model: Model configuration, element of Model enumeration
+    :field data: Data that is used for fitting the model. Represented by a NumPy
+                 array with shape (n × d), where n is the number of observations, and
+                 d is the dimension of the data.
+    :field g: Number of cluster components in the mixture model.
+    :field n: Number of observations in data.
+    :field d: Dimension of observation in data.
+    :field mean: Means of the cluster components. Represented by a NumPy array
+                 with shape (g × d). The ith component of mean is the cluster centre
+                 of group i.
+    :field variance: Covariance matrices of the cluster components. Represented by a
+                     NumPy array with shape (g × d × d) The ith component represents
+                     the covariance matrix of group i.
+    :field pro: Mixing proportions (τ ) of the mixture model. Represented by a
+                NumPy array with shape g.
+    :field loglik: Maximised Log-likelihood of data in fitted mixture model.
+    :field z: Matrix of shape (n × d), the [i, k]th component indicates the condi-
+              tional probability that the ith observation belongs to cluster compo-
+              nent k.
+    :field return_code: return code of the last method used on the model (fit, e_step or m_step). Possible return codes:
+                       0 : method completed successfully.
+                       -1: One or more cluster components have a singular covariance.
+                       -2: Mixing proportion fell below minimum threshold, with
+                       equal mixing proportions.
+                       -3: Mixing proportion fell below minimum threshold.
+                       -9: Internal error in model fitting.
+                       1 : Iteration limit reached.
+                       9 : mean, variance, pro or z is missing, or contains missing values
     """
     def __init__(self, data, z=None, prior=None, **kwargs):
         """
         Gaussian finite mixture model.
 
         :param data: data to use for fitting the Gaussian finite mixture model represented by a numpy array, containing
-        n observations, of dimension d.
+                     n observations, of dimension d.
         :param z: numpy array with shape (n x g), where n is the number of observations in data, and G the amount of
-        cluster components in the models. index [i,j] indicates the probability that observation i belongs to component
-        j.
+                  cluster components in the models. index [i,j] indicates the probability that observation i belongs to
+                  component j.
         :param prior: optional prior for mixture model (not yet supported)
         """
         # Model type from Model enum.
@@ -128,7 +157,7 @@ class MixtureModel:
         self.pro = None
 
         self.loglik = None
-        self.returnCode = None
+        self.return_code = None
         self.z = z
 
         self.g = None
@@ -143,21 +172,21 @@ class MixtureModel:
         Computes the BIC (Bayesian Information Criterion) for this mixture model.
 
         :param noise: A logical variable indicating whether or not the model includes an optional Poisson noise
-        component. The default is to assume no noise component.
+                      component. The default is to assume no noise component.
         :param equalpro: A logical variable indicating whether or not the components in the model are assumed to be
-        present in equal proportion. The default is to assume unequal mixing proportions.
+                         present in equal proportion. The default is to assume unequal mixing proportions.
         :return: The BIC or Bayesian Information Criterion for the given input arguments.
         """
-        if self.returnCode is None:
+        if self.return_code is None:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
         nparams = self.model.n_mclust_params(self.d, self.g, noise, equalpro)
-        return 2 * self.loglik - nparams * log(self.n)
+        return 2 * self.loglik - nparams * np.log(self.n)
 
     def fit(self):
         """
         Fits this mixture model on self.data.
 
-        :return: returnCode of success of model.
+        :return: return_code of success of model.
         """
         raise AbstractMethodError()
 
@@ -167,14 +196,24 @@ class MixtureModel:
 
         :return: numpy array containing index to which cluster component observation i belongs.
         """
-        if self.returnCode is None:
+        if self.return_code is None:
             raise ModelError("Model is not fitted yet, was fit called on this model?")
-        elif self.returnCode != 0:
-            raise ModelError("Model not fitted correctly, check warnings and returnCode for more information.")
+        elif self.return_code != 0:
+            raise ModelError("Model not fitted correctly, check warnings and return_code for more information.")
         if self.g == 1:
             return np.zeros(self.n)
 
     def predict(self, new_data=None):
+        """
+        Computes the cluster predictions for new_data.
+
+        If new_data is not provided the cluster predictions of the training data are computed
+        :param new_data: An optional matrix containing data observations of dimension d. If
+                         no data is specified, the cluster assignment for the training data are
+                         returned.
+        :return: Vector containing predicted cluster assignments for new_data. Indices
+                 of return vector correspond to indices in new_data.
+        """
         if new_data is None:
             new_data = self.data
         else:
@@ -192,9 +231,31 @@ class MixtureModel:
         return np.argmax(z, 1)
 
     def component_density(self, new_data=None, logarithm=False):
+        """
+        Calculates the component densities for observations in this mixture model.
+
+        :param new_data: An optional matrix with containing data observations of dimension
+                         d. If no data is specified, the component densities for the training
+                         data are calculated.
+        :param logarithm: Boolean indicating whether or not the logarithm of the component
+                          densities should be returned
+        :return: Matrix containing component densities of new_data. The [i, k]th
+                 component indicates the density of observation i in component k.
+        """
         raise AbstractMethodError()
 
     def density(self, new_data=None, logarithm=False):
+        """
+        Calculates the densities of observations in this mixture model.
+
+        :param new_data: An optional matrix with containing data observations of dimension
+                         d. If no data is specified, the densities for the training data are
+                         calculated.
+        :param logarithm: Boolean indicating whether or not the logarithm of the densities
+                          should be returned.
+        :return: Vector containing densities of new_data. The ith component indicates the density
+                 of observation i in the mixture model.
+        """
         if self.pro is None:
             raise ModelError("mixing proportions must be supplied")
         cden = self.component_density(new_data, logarithm=True)
@@ -225,13 +286,18 @@ class MixtureModel:
         new.variance = copy.deepcopy(self.variance)
 
         new.loglik = copy.deepcopy(self.loglik)
-        new.returnCode = self.returnCode
+        new.return_code = self.return_code
 
         new.prior = self.prior
 
         return new
 
     def copy_onto(self, model):
+        """
+        Copies the field of this model (self) onto model.
+
+        :param model: MixutureModel to copy field to
+        """
         model.model = self.model
         model.data = self.data
         model.prior = self.prior
@@ -241,7 +307,7 @@ class MixtureModel:
         model.pro = self.pro
 
         model.loglik = self.loglik
-        model.returnCode = self.returnCode
+        model.return_code = self.return_code
         model.z = self.z
 
         model.g = self.g
@@ -257,6 +323,6 @@ class MixtureModel:
                "variance:\n{}\n" \
                "pro: {}\n" \
                "loglik: {}\n" \
-               "returnCode: {}\n".format(self.model, self.n, self.d, self.g, self.mean,
-                                         self.variance, self.pro, self.loglik, self.returnCode)
+               "return_code: {}\n".format(self.model, self.n, self.d, self.g, self.mean,
+                                         self.variance, self.pro, self.loglik, self.return_code)
 

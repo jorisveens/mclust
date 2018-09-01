@@ -1,13 +1,33 @@
 import warnings
 
-from mclust.control import EMControl
 from mclust.bic import MclustBIC
-
+from mclust.control import EMControl
 from mclust.models import Model, MixtureModel
 
 
 class Mclust(MixtureModel):
+    """
+    main entry point for the clustering functionality of mclust. It fits all
+    provided or default models on a specified number of cluster components. After calling the
+    fit() function, Mclust objects behave like the best model, based on BIC value.
+    """
     def __init__(self, data, groups=None, models=None, prior=None, control=EMControl()):
+        """
+        Constructor
+
+        :param data: Data that is used for fitting the model. Represented by a NumPy array
+                     with shape (n × d), where n is the number of observations, and d is the
+                     dimension of the data.
+        :param groups: List containing the number of cluster components that should be
+                       considered for the different models and comparison. By default 1 to 9
+                       cluster components are considered.
+        :param models: List of model configurations used for fitting and comparison. By default
+                       all possible models are considered.
+        :param prior: Not implemented.
+        :param control: EMControl object, that is used to specify tolerance for convergence,
+                        iteration limit and whether the mixing proportions should be assumed
+                        to be equal.
+        """
         super().__init__(data, prior)
         self.groups = groups
         self.models = models
@@ -28,7 +48,7 @@ class Mclust(MixtureModel):
 
         self.__dict__.update(model.__dict__.copy())
         self._underlying_model = model
-        return self.returnCode
+        return self.return_code
 
     def classify(self):
         super().classify()

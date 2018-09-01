@@ -1,54 +1,45 @@
 import copy
-import numpy as np
 import warnings
 from math import sqrt
 
-from mclust.exceptions import ModelError, AbstractMethodError
+import numpy as np
+
 from mclust.control import EMControl
+from mclust.exceptions import ModelError, AbstractMethodError
+from mclust.fortran import mclust, mclustaddson
 from mclust.models import Model, MixtureModel
 from mclust.utility import round_sig, mclust_map
-from mclust.fortran import mclust, mclustaddson
 from mclust.variance import VarianceSigmasq, VarianceCholesky, VarianceDecomposition
 
 
 # TODO implement vinv and prior
 
 class ME(MixtureModel):
+    """
+    MixtureModel that utilises EM algorithm to fit model to the data.
+    """
     def __init__(self, data, z, prior=None, control=EMControl()):
         super().__init__(data, z, prior)
         self._set_control(control)
         self.vinv = None
 
     def _set_control(self, control=EMControl()):
+        """
+        Initialise properties set by EMControl object
+        :param control: EMControl object
+        """
         self.iterations = np.array(control.itmax[0], order='F')
         self.err = np.array(control.tol[0], order='F')
         self.loglik = np.array(control.eps, order='F')
         self.control = control
 
     def fit(self, control=None, vinv=None):
-        """
-        Runs ME algorithm on data starting with probabilities defined in z
-
-        :param data: data to run ME algorithm on
-        :param z: matrix containing the probability of data observation i belonging
-                  to group j
-        :param prior: optional prior
-        :param control: MEControl object with control parameters for ME algorithm
-        :param vinv: An estimate of the reciprocal hypervolume of the data region,
-               when the model is to include a noise term. Set to a negative value
-               or zero if a noise term is desired, but an estimate is unavailable
-               — in that case function hypvol will be used to obtain the estimate.
-               The default is not to assume a noise term in the model through the
-               setting Vinv=None.
-        :return: return code of Algorithm
-        """
-
         if control is not None:
             self._set_control(control)
 
-        self.returnCode = self._check_z_matrix()
-        if self.returnCode != 0:
-            return self.returnCode
+        self.return_code = self._check_z_matrix()
+        if self.return_code != 0:
+            return self.return_code
 
         g = self.z.shape[1]
         if vinv is not None:
@@ -59,17 +50,29 @@ class ME(MixtureModel):
         self.vinv = vinv
 
         self._me_fortran(control, vinv)
-        self.returnCode = self._handle_output()
-        return self.returnCode
+        self.return_code = self._handle_output()
+        return self.return_code
 
     def m_step(self):
+        """
+        Executes single maximization step of EM algorithms on this mixture model.
+        :return: return code indicating success, see return_code in MixtureModel.
+        """
         if self.g is None:
             self.g = self.z.shape[1]
 
     def e_step(self):
+        """
+        Executes single expectation step of EM algorithms on this mixture model.
+        :return: return code indicating success, see return_code in MixtureModel.
+        """
         raise AbstractMethodError()
 
     def _check_z_matrix(self):
+        """
+        Check if current z matrix is valid and does not have missing values.
+        :return:
+        """
         if self.z is None:
             warnings.warn("z is missing")
             return 9
@@ -89,12 +92,22 @@ class ME(MixtureModel):
         return 0
 
     def _me_fortran(self, control, vinv):
+        """
+        Method that calls Fortran code to fit model, implemented by children.
+        """
         raise AbstractMethodError()
 
     def _m_step_fortran(self):
+        """
+        Method that calls Fortran code to run M-step, implemented by children.
+        """
         raise AbstractMethodError()
 
     def _handle_output(self):
+        """
+        Checks properties of MixtureModel after fitting
+        :return: return code, see return_code MixtureModel
+        """
         if self.loglik > round_sig(np.finfo(float).max, 6) or self.loglik == float('nan'):
             warnings.warn("singular covariance")
             self.mean = self.pro = self.variance = self.z = self.loglik = float('nan')
@@ -138,22 +151,26 @@ class ME(MixtureModel):
         model.pro = np.array([-1], float, order='F')
         model.e_step()
 
-        if model.returnCode or model.returnCode == -9:
+        if model.return_code or model.return_code == -9:
             return None
-        elif model.returnCode == 0:
+        elif model.return_code == 0:
             if not logarithm:
                 model.z = np.exp(model.z)
-        self.returnCode = model.returnCode
+        self.return_code = model.return_code
         return model.z
 
     def _check_parameters(self):
+        """
+        Checks if pro, mean and variance are missing or contain missing values.
+        :return: return code, see return_code MixtureModel.
+        """
         if self.pro is None or np.any(np.isnan(self.pro)) or \
                 self.mean is None or np.any(np.isnan(self.mean)) or \
                 self.variance is None or np.any(np.isnan(self.variance.get_covariance())):
             warnings.warn("parameters are missing")
             self.z = np.full((self.n, self.d), float('nan'))
             self.loglik = float('nan')
-            self.returnCode = 9
+            self.return_code = 9
             return 9
         return 0
 
@@ -183,10 +200,10 @@ class ME1Dimensional(ME):
         if np.any(self.sigmasq > round_sig(np.finfo(float).max, 6)):
             warnings.warn("cannot compute M-step")
             self.pro = self.mean = self.sigmasq = float("nan")
-            self.returnCode = -1
+            self.return_code = -1
         self.variance = VarianceSigmasq(self.d, self.g, self.sigmasq)
         self.mean = np.array([self.mean]).transpose()
-        self.returnCode = 0
+        self.return_code = 0
         return 0
 
 
@@ -234,12 +251,12 @@ class MEE(ME1Dimensional):
 
     def e_step(self):
         if self._check_parameters() != 0:
-            return self.returnCode
+            return self.return_code
 
         if not isinstance(self.variance, VarianceSigmasq):
             warnings.warn("incorrect variance parameter")
-            self.returnCode = -1
-            return self.returnCode
+            self.return_code = -1
+            return self.return_code
 
         if self.pro[0] != -1:
             self.pro = self.pro / np.sum(self.pro)
@@ -268,10 +285,10 @@ class MEE(ME1Dimensional):
         if self.loglik > round_sig(np.finfo(float).max, 6):
             warnings.warn("cannot compute E-step")
             self.loglik = None
-            self.returnCode = -1
+            self.return_code = -1
         else:
-            self.returnCode = 0
-        return self.returnCode
+            self.return_code = 0
+        return self.return_code
 
 
 class MEV(ME1Dimensional):
@@ -320,12 +337,12 @@ class MEV(ME1Dimensional):
 
     def e_step(self):
         if self._check_parameters() != 0:
-            return self.returnCode
+            return self.return_code
 
         if not isinstance(self.variance, VarianceSigmasq):
             warnings.warn("incorrect variance parameter")
-            self.returnCode = -1
-            return self.returnCode
+            self.return_code = -1
+            return self.return_code
 
         if self.pro[0] != -1:
             self.pro = self.pro / np.sum(self.pro)
@@ -354,10 +371,10 @@ class MEV(ME1Dimensional):
         if self.loglik > round_sig(np.finfo(float).max, 6):
             warnings.warn("cannot compute E-step")
             self.loglik = None
-            self.returnCode = -1
+            self.return_code = -1
         else:
-            self.returnCode = 0
-        return self.returnCode
+            self.return_code = 0
+        return self.return_code
 
 
 class MEMultiDimensional(ME):
@@ -377,10 +394,10 @@ class MEMultiDimensional(ME):
         if np.any(self.mean > round_sig(np.finfo(float).max, 6)):
             warnings.warn("cannot compute M-step")
             self.mean = self.variance = self.pro = float('nan')
-            self.returnCode = -1
+            self.return_code = -1
             return -1
 
-        self.returnCode = 0
+        self.return_code = 0
 
     def e_step(self):
         if self._check_parameters() != 0:
@@ -418,15 +435,15 @@ class MEMultiDimensional(ME):
             else:
                 warnings.warn("input error for LAPACK DPOTRF")
             self.loglik = None
-            self.returnCode = -9
+            self.return_code = -9
         elif self.loglik > round_sig(np.finfo(float).max, 6):
             warnings.warn("cannot compute E-step")
             self.loglik = None
-            self.returnCode = -1
+            self.return_code = -1
         else:
-            self.returnCode = 0
+            self.return_code = 0
 
-        return self.returnCode
+        return self.return_code
 
 
 class MEEII(MEMultiDimensional):

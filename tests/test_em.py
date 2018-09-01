@@ -54,7 +54,7 @@ class METestCase(unittest.TestCase):
                                       lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
-                             model.returnCode)
+                             model.return_code)
             self.assertTrue(np.allclose(expected['loglik'], model.loglik))
             self.assertTrue(np.allclose(expected['parameters']['mean'].transpose(),
                                         model.mean))
@@ -71,7 +71,7 @@ class METestCase(unittest.TestCase):
                                       lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
-                             model.returnCode)
+                             model.return_code)
             self.assertTrue(np.allclose(expected['loglik'], model.loglik))
             self.assertTrue(np.allclose(np.array([expected['parameters']['mean']]).transpose(),
                                         model.mean))
@@ -164,7 +164,7 @@ class MStepTest(unittest.TestCase):
                                       lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
-                             model.returnCode)
+                             model.return_code)
             self.assertTrue(np.allclose(expected['parameters']['mean'].transpose(),
                                         model.mean))
             self.assertTrue(np.allclose(expected['parameters']['variance']['sigma'].transpose(2, 1, 0),
@@ -179,7 +179,7 @@ class MStepTest(unittest.TestCase):
                                       lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
             self.assertEqual(expected['returnCode'],
-                             model.returnCode)
+                             model.return_code)
             self.assertTrue(np.allclose(np.array([expected['parameters']['mean']]).transpose(),
                                         model.mean))
             self.assertTrue(np.allclose(expected['parameters']['variance']['sigmasq'][0],
@@ -249,7 +249,7 @@ class EStepTest(unittest.TestCase):
                                   lambda f: clean_json(json.loads(f.read().decode('utf-8'))))
 
         self.assertEqual(expected['returnCode'],
-                         model.returnCode)
+                         model.return_code)
         self.assertTrue(np.allclose(expected['parameters']['mean'].transpose(),
                                     model.mean))
         self.assertTrue(np.allclose(expected['parameters']['variance']['sigma'].transpose(2, 1, 0),

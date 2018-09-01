@@ -1,14 +1,11 @@
-from mclust.fortran import mclust
-
-from mclust.exceptions import *
-from mclust.models import Model, MixtureModel
-from mclust.em import MEE, MEEII, MEEEI, MEEEE
-from mclust.utility import round_sig
-from mclust.variance import *
-
-import numpy as np
 import sys
 import warnings
+
+from mclust.em import MEE, MEEII, MEEEI, MEEEE
+from mclust.fortran import mclust
+from mclust.models import Model, MixtureModel
+from mclust.utility import round_sig
+from mclust.variance import *
 
 
 class MVN(MixtureModel):
@@ -20,10 +17,10 @@ class MVN(MixtureModel):
         if self.loglik > round_sig(sys.float_info.max, 6):
             warnings.warn("singular covariance")
             self.loglik = None
-            self.returnCode = -1
+            self.return_code = -1
             return -1
-        self.returnCode = 0
-        return self.returnCode
+        self.return_code = 0
+        return self.return_code
 
 
 class MVNX(MVN):

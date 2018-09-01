@@ -1,28 +1,27 @@
-import numpy as np
-from collections import defaultdict
 import warnings
+from collections import defaultdict
+
+import numpy as np
 
 from mclust.control import EMControl, ModelTypes
 from mclust.exceptions import ModelError
-from mclust.utility import qclass, mclust_unmap
 from mclust.hierarchical_clustering import HCEII, HCVVV
 from mclust.model_factory import ModelFactory
+from mclust.utility import qclass, mclust_unmap
 
 
 class MclustBIC:
     def __init__(self, data, groups=None, models=None, prior=None, control=EMControl(), initialization={'noise': None}):
         """
-        Calculate BIC values for data for g groups models specified  by modelNames.
+        Object for fitting all provided (or default) model configurations on the specified range of cluster component
+        numbers.
 
-        :raises ModelError if g or modelNames are incorrectly specified.
-        :modifies g, modelnames
-
-        :param data: data used for fitting the models
-        :param groups: list of amount of groups to consider, if none are applied use 1 to 9 groups
-        :param models: list of models that are fitted, if this is None all available models will be fitted
-        :param prior: prior belief of shape direction and scale
-        :param initialization: initialization parameters
-        :return: BICData containing BIC values and return codes for g groups and models specified by modelnames
+        :param data: The data that is used for fitting the model. Represented by a Fortran contiguous float NumPy array.
+        :param groups: List of integers specifying the number of cluster components to fit all model configurations on.
+        :param models: List of Model values, specifying the model configuration to fit.
+        :param prior: Not yet implemented.
+        :param control: EMControl object specifying the control parameters used to fit the models.
+        :param initialization: Option dictionary, currently only noise=None is supported.
         """
 
         self.groups = groups
@@ -48,11 +47,13 @@ class MclustBIC:
                     hc = HCEII(data)
                 hc.fit()
                 hc_matrix = hc.get_class_matrix(self.groups)
+            # fit all combinations of groups and model configurations
             for groupIndex, group in enumerate(self.groups):
                 for modelIndex, model in enumerate(self.models):
                     if self.fitted_models[group, model] is not None:
                         continue
 
+                    # use qclass to initialise one dimensional models else use hierarchical clustering
                     z = mclust_unmap(qclass(data, group)) if self.d == 1 else mclust_unmap(hc_matrix[:, groupIndex])
                     if min(np.apply_along_axis(sum, 0, z)) == 0:
                         warnings.warn("there are missing groups")
@@ -62,6 +63,9 @@ class MclustBIC:
                     self.fitted_models[group, model] = mod
 
     def _handle_model_selection(self):
+        """
+        Sets default model configurations if none a applied
+        """
         if self.models is None:
             if self.d == 1:
                 self.models = ModelTypes.get_one_dimensional()
@@ -69,6 +73,12 @@ class MclustBIC:
                 self.models = ModelTypes.get_multi_dimensional()
 
     def _handle_group_selection(self, initialization):
+        """
+        Sets groups based on groups input and initialization
+
+        If no groups are specified 1 to 9 groups are used by default
+        :param initialization: Option dictionary
+        """
         if self.groups is None:
             # if no groups are specified generate groups with 1 to 9 elements
             self.groups = list(range(1, 10))
@@ -85,24 +95,43 @@ class MclustBIC:
                 raise ModelError("g must be non-negative")
 
     def get_bic_matrix(self):
+        """
+        Calculate BIC value for all fitted models
+
+        :return: NumPy array with shape (g × m) , where g is the length of groups and m is the length of models.
+                 The [i, j]th element indicates the BIC value of configuration models[j] with groups[i] cluster
+                 components.
+        """
         bic_matrix = np.full((len(self.groups), len(self.models)), float('nan'), dtype=float)
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
                 fitted = self.fitted_models[group, model]
-                if fitted is not None and fitted.returnCode == 0:
+                if fitted is not None and fitted.return_code == 0:
                     bic_matrix[group_index, model_index] = fitted.bic()
         return bic_matrix
 
     def get_return_codes_matrix(self):
+        """
+        Collect the return value of all fitted models
+
+        :return: NumPy array with shape (g × m) , where g is the length of groups and m is the length of models.
+                 The [i, j]th element indicates the return code of configuration models[j] with groups[i] cluster
+                 components.
+        """
         ret_matrix = np.full((len(self.groups), len(self.models)), -42, dtype=int)
         for group_index, group in enumerate(self.groups):
             for model_index, model in enumerate(self.models):
                 fitted = self.fitted_models[group, model]
                 if fitted is not None:
-                    ret_matrix[group_index, model_index] = fitted.returnCode
+                    ret_matrix[group_index, model_index] = fitted.return_code
         return ret_matrix
 
     def pick_best_model(self):
+        """
+        Selects the best fitted model based on BIC value.
+
+        :return: MixtureModel corresponding to the best fitted model based on BIC.
+        """
         bic_matrix = self.get_bic_matrix()
         try:
             index = np.unravel_index(np.nanargmax(bic_matrix), bic_matrix.shape)
