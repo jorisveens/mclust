@@ -47,6 +47,15 @@ class VarianceSigmasq(Variance):
     Used for E, V, EII and VII model configurations.
     """
     def __init__(self, d, g, sigmasq):
+        """
+        Constructor
+
+        :param d: Dimension of the data in MixtureModel
+        :param g: Number of cluster components in MixtureModel
+        :param sigmasq: NumPy array of dimension 0 or 1, representing the scale of the covariance.
+                      If scale is a scalar the scale is taken to be equal for all cluster components.
+                      Otherwise the ith component of scale indicates the scale of the cluster component i.
+        """
         super().__init__(d, g)
         if sigmasq.ndim == 0:
             self.sigmasq = np.repeat(sigmasq, g)
@@ -73,6 +82,24 @@ class VarianceDecomposition(Variance):
     configurations.
     """
     def __init__(self, d, g, scale, shape, orientation=None):
+        """
+        Constructor
+
+        :param d: Dimension of the data in MixtureModel
+        :param g: Number of cluster components in MixtureModel
+        :param scale: NumPy array of dimension 0 or 1, representing the scale of the covariance.
+                      If scale is a scalar the scale is taken to be equal for all cluster components.
+                      Otherwise the ith component of scale indicates the scale of the cluster component i.
+        :param shape: Optional NumPy array of dimension 1 or 2, representing the shape of the covariance.
+                      where the ith row indicates the shape of the ith component, if shape has 2 dimensions.
+                      If shape is one dimensional the shape is taken to be equal for all cluster components.
+                      If no shape is supplied all cluster components are assumed to be spherical.
+        :param orientation: Optional NumPy array of dimension 2 or 3, representing the orientation of the covariance.
+                            The ith index represents the orientation matrix of cluster component i, when
+                            orientation is 3 dimensional. If orientation is 2 dimensional, the orientation
+                            for each cluster component is taken to be identical. If orientation is not supplied,
+                            the identity matrix is taken as orientation matrix for all cluster components.
+        """
         super().__init__(d, g)
         self.scale = np.array(scale)
         if self.scale.ndim == 0:
@@ -111,13 +138,24 @@ class VarianceCholesky(Variance):
     Used for EEE and VVV model configurations.
     """
     def __init__(self, d, g, cholsigma):
+        """
+        Constructor
+
+        :param d: Dimension of the data in MixtureModel
+        :param g: Number of cluster components in MixtureModel
+        :param cholsigma: NumPy array of 2 or 3 dimension containing the Cholesky decomposition of
+                          the covariance matrices of the cluster components. If cholsigma is 3
+                          dimensional, the ith element indicates the Cholesky decomposition matrix of
+                          cluster component i. If cholsigma is 2 dimensional, the covariance matrices
+                          for all cluster components are taken to be equal.
+        """
         super().__init__(d, g)
-        if cholsigma.ndim != 3:
-            raise DimensionError("cholsigma should have 3 dimensions")
-        if cholsigma.shape[0] == 1:
-            self.cholsigma = np.tile(cholsigma[0], (self.g, 1, 1))
-        else:
+        if cholsigma.ndim == 2:
+            self.cholsigma = np.tile(cholsigma, (self.g, 1, 1))
+        elif cholsigma.ndim == 3:
             self.cholsigma = cholsigma
+        else:
+            raise DimensionError("cholsigma should be 2 or 3 dimensional")
 
     def get_covariance(self):
         result = np.zeros((self.g, self.d, self.d))

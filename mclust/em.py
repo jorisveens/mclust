@@ -801,7 +801,7 @@ class MEEEE(MEMultiDimensional):
             return NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceCholesky(self.d, self.g, np.array([cholsigma]))
+        self.variance = VarianceCholesky(self.d, self.g, cholsigma)
 
     def _m_step_fortran(self):
         w = np.zeros(self.d, float, order='F')
@@ -821,7 +821,7 @@ class MEEEE(MEMultiDimensional):
             raise NotImplementedError()
 
         self.mean = self.mean.transpose()
-        self.variance = VarianceCholesky(self.d, self.g, np.array([cholsigma]))
+        self.variance = VarianceCholesky(self.d, self.g, cholsigma)
 
 
 class MEEVE(MEMultiDimensional):
